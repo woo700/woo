@@ -296,17 +296,6 @@
   <button onclick="switchLanguage()">切換語言(日/中)</button>
   <div id="results"></div>
 
-    <script>
-  let currentLang = 'ja'; // 預設語言是中文
-
-  function switchLanguage() {
-    currentLang = currentLang === 'ja' ? 'ch' : 'ja';
-
-    document.querySelectorAll('.lang').forEach(el => {
-      el.style.display = el.classList.contains(currentLang) ? 'block' : 'none';
-    });
-  }
-
   <script>
     const buttons = document.querySelectorAll('.btn');
     const inputField = document.getElementById('traitsInput');
