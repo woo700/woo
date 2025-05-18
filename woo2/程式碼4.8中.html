@@ -308,7 +308,7 @@ function updateResults() {
   // ✅ 輸出排序後的結果
   for (const match of matches) {
     const p = document.createElement('p');
-    p.textContent = `該当するのは【${match.zone}】(${match.found.join(', ')})`;
+    p.textContent = `符合的地點【${match.zone}】(${match.found.join(', ')})`;
     results.appendChild(p);
   }
 }
