@@ -50,6 +50,18 @@
       font-size: 25px;
       font-family: "zen-kurenaido",	"Noto Sans JP",  "Noto Sans TC", sans-serif;
       cursor: pointer;
+      
+    .collapsible-container {
+      display: flex;
+      gap: 1rem; /* 元素間的間距 */
+      flex-wrap: wrap; /* 可選：換行 */
+}
+
+.collapsible {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  /* width: 200px;  或你想要的寬度 */
+}
     }
     /* 色コードを変更 */
     .yellow { background-color: #e5c77a; }
@@ -102,14 +114,34 @@
 
   <div class="section">
 
-    <button class="collapsible">レア4</button>
+    <div class="collapsible-container">
+      <details class="collapsible">
+    <summary>金枠</summary>
+    <p>金枠</p>
+      </details>
+      <details class="collapsible">
+    <summary>銀枠</summary>
+    <p>銀枠</p>
+    </details>
+  　<details class="collapsible">
+    <summary>銅枠</summary>
+    <p>銅枠</p>
+      </details>
+      <details class="collapsible">
+    <summary>無枠</summary>
+    <p>無枠</p>
+    </details>
+      
+    </div>
+    
+    <button class="collapsible">金枠</button>
     <div class="content">
       <!-- #E5BE7A -->
       <button class="btn yellow">神聖</button>
       <button class="btn yellow">正義</button>
       <button class="btn yellow">威厳</button>
       <button class="btn yellow">勇敢</button>
-      <button class="btn yellow">不屈</button>
+      <button class="btn yellow">不屈</button><br>
 
       <!-- #E09D94 -->
       <button class="btn red">勇気</button>
@@ -123,7 +155,7 @@
       <button class="btn green">幸運</button>
       <button class="btn green">再生</button>
       <button class="btn green">真心</button>
-      <button class="btn green">団結</button>
+      <button class="btn green">団結</button><br>
 
       <!-- #78A5D4 -->
       <button class="btn blue">信頼</button>
@@ -140,7 +172,7 @@
       <button class="btn purple">強者</button><br>
     </div>
 
-    <button class="collapsible">レア3</button>
+    <button class="collapsible">銀枠</button>
     <div class="content">
       <!-- #E5BE7A -->
       <button class="btn yellow">信念</button>
@@ -149,7 +181,7 @@
       <button class="btn yellow">貫禄</button>
       <button class="btn yellow">指導力</button>
       <button class="btn yellow">栄誉</button>
-      <button class="btn yellow">理想</button>
+      <button class="btn yellow">理想</button><br>
 
       <!-- #E09D94 -->
       <button class="btn red">希望</button>
@@ -167,7 +199,7 @@
       <button class="btn green">愛着</button>
       <button class="btn green">親密</button>
       <button class="btn green">朴訥</button>
-      <button class="btn green">柔和</button>
+      <button class="btn green">柔和</button><br>
 
       <!-- #78A5D4 -->
       <button class="btn blue">知性</button>
@@ -185,10 +217,10 @@
       <button class="btn purple">強靭</button>
       <button class="btn purple">執着</button>
       <button class="btn purple">君臨</button>
-      <button class="btn purple">鮮烈</button>
+      <button class="btn purple">鮮烈</button><br>
     </div>
 
-    <button class="collapsible">レア2</button>
+    <button class="collapsible">銅枠</button>
     <div class="content">
       <!-- #E5BE7A -->
       <button class="btn yellow">清潔</button>
@@ -197,7 +229,7 @@
       <button class="btn yellow">克己</button>
       <button class="btn yellow">先導</button>
       <button class="btn yellow">素直</button>
-      <button class="btn yellow">邁進</button>
+      <button class="btn yellow">邁進</button><br>
 
       <!-- #E09D94 -->
       <button class="btn red">派手</button>
@@ -215,7 +247,7 @@
       <button class="btn green">共栄</button>
       <button class="btn green">友好</button>
       <button class="btn green">天然</button>
-      <button class="btn green">自適</button>
+      <button class="btn green">自適</button><br>
 
       <!-- #78A5D4 -->
       <button class="btn blue">繊細</button>
@@ -236,14 +268,14 @@
       <button class="btn purple">豪胆</button><br>
     </div>
 
-    <button class="collapsible">レア1</button>
+    <button class="collapsible">無枠</button>
     <div class="content">
       <!-- #E5BE7A -->
       <button class="btn yellow">真面目</button>
       <button class="btn yellow">正直</button>
       <button class="btn yellow">無垢</button>
       <button class="btn yellow">健気</button>
-      <button class="btn yellow">忍耐</button>
+      <button class="btn yellow">忍耐</button><br>
 
       <!-- #E09D94 -->
       <button class="btn red">積極</button>
@@ -258,14 +290,14 @@
       <button class="btn green">爽やか</button>
       <button class="btn green">頑固</button>
       <button class="btn green">素朴</button>
-      <button class="btn green">大らか</button>
+      <button class="btn green">大らか</button><br>
 
       <!-- #78A5D4 -->
       <button class="btn blue">寂しさ</button>
       <button class="btn blue">内気</button>
       <button class="btn blue">冷静</button>
       <button class="btn blue">閑寂</button>
-      <button class="btn blue">平穏</button><br>
+      <button class="btn blue">平穏</button><br><br>
 
       <!-- #9E72D9 -->
       <button class="btn purple">孤独</button>
