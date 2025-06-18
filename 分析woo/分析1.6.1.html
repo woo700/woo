@@ -2,9 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HTML 詞頻分析器</title>
-  <script src="https://cdn.jsdelivr.net/npm/jieba-zh@1.0.4/jieba-zh.min.js"></script>
+  <title>聊天詞頻分析器</title>
   <style>
     body {
       font-family: sans-serif;
@@ -52,38 +50,38 @@
       });
       return messages.join(" ");
     }
-function analyzeText(text) {
-  const stopWords = new Set(['的', '了', '在', '是', '和', '與', '就', '都', '而',
-                             '及', '著', '或', '一', '不', '也', '有', '我', '你',
-                             '他', '她', '它', '你們', '他們', '這', '那','com',
-                             'https','Instagram','stories','edited','對你的訊息',
-                             '傳達了','心情','則訊息讚','點擊收聽音訊','maps','app',
-                             'goo','gl','ann','instagram','tw','黄郁善傳送了','份附件',
-                             '你傳送了','個附件','tontonfriends','annhttps','點擊觀看影片',
-                             '哔哩哔哩','status','JgpN','mahoyaku','goods','video','yuxuan',
-                             'wasn','notified','about','this','message','because','they','re',
-                             'in','quiet','mode','kotone','be','post','reel','id','chonyy',
-                             '已將主題變更為','退出了此群組','github','io','line','analyzer','front',
-                             'jdprinting','tv']);
 
-  // 使用 jieba-zh 斷詞
-  const words = jieba.cut(text);
+    function analyzeText(text) {
+      const stopWords = new Set(['的', '了', '在', '是', '和', '與', '就', '都', '而',
+                                 '及', '著', '或', '一', '不', '也', '有', '我', '你',
+                                 '他', '她', '它', '你們', '他們', '這', '那','com',
+                                 'https','Instagram','stories','edited','對你的訊息',
+                                 '傳達了','心情','則訊息讚','點擊收聽音訊','maps','app',
+                                 'goo','gl','ann','instagram','tw','黄郁善傳送了','份附件',
+                                 '你傳送了','個附件','tontonfriends','annhttps','點擊觀看影片',
+                                 '哔哩哔哩','status','JgpN','mahoyaku','goods','video','yuxuan',
+                                 'wasn','notified','about','this','message','because','they','re',
+                                 'in','quiet','mode','kotone','be','post','reel','id','chonyy',
+                                 '已將主題變更為','退出了此群組','github','io','line','analyzer','front',
+                                 'jdprinting','tv']);
 
-  const freq = {};
-  for (const word of words) {
-    if (word.length > 1 && !stopWords.has(word)) {
-      freq[word] = (freq[word] || 0) + 1;
+      // 簡單用非中文字和非英文字切詞（會有缺陷，但先用）
+      const words = text
+        .split(/[^a-zA-Z\u4e00-\u9fa5]+/)
+        .filter(word => word.length > 1 && !stopWords.has(word));
+
+      const freq = {};
+      for (const word of words) {
+        freq[word] = (freq[word] || 0) + 1;
+      }
+
+      const sorted = Object.entries(freq).filter(([w, c]) => c > 2).sort((a, b) => b[1] - a[1]);
+      const top30 = sorted.slice(0, 30);
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<h2>前 30 高出現頻率詞：</h2>' +
+        '<ol>' + top30.map(([word, count]) => `<li>${word}：${count} 次</li>`).join('') + '</ol>';
     }
-  }
-
-  const sorted = Object.entries(freq).filter(([w, c]) => c > 2).sort((a, b) => b[1] - a[1]);
-  const top30 = sorted.slice(0, 30);
-
-  const resultDiv = document.getElementById('result');
-  resultDiv.innerHTML = '<h2>前 30 高出現頻率詞：</h2>' +
-    '<ol>' + top30.map(([word, count]) => `<li>${word}：${count} 次</li>`).join('') + '</ol>';
-}
-
 
     document.getElementById('fileInput').addEventListener('change', e => {
       const file = e.target.files[0];
