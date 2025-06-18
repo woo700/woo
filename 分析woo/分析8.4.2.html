@@ -1,0 +1,116 @@
+<!DOCTYPE html><html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>聊天數量統計</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    input[type="file"], textarea, button {
+      margin: 10px 0;
+      display: block;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>聊天數量統計</h1><label for="fileInput">上傳 HTML 檔案：</label> <input type="file" id="fileInput" accept=".html,.htm">
+
+<label for="userInput">請輸入要統計的使用者名稱（以空格分隔）：</label>
+
+  <textarea id="userInput" rows="2" cols="50" placeholder="例如：小明 小美"></textarea><button id="analyzeBtn">開始分析</button>
+
+  <div id="result"></div>  <script>
+    let fullText = '';
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(reader.result, 'text/html');
+        const allText = doc.body ? doc.body.innerText : '';
+        fullText = allText;
+        document.getElementById('result').innerHTML = '<p>檔案上傳成功，請輸入使用者名稱並按下「開始分析」。</p>';
+      };
+      reader.readAsText(file);
+    });
+
+    function analyzeTextByUser(text, userList) {
+      const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+
+      // 取得日期
+      const dateSet = new Set();
+      const datePattern = /\d{1,2} 月 \d{1,2}, \d{4}/;
+      lines.forEach(line => {
+        const match = line.match(datePattern);
+        if (match) {
+          dateSet.add(match[0]);
+        }
+      });
+
+      // 統計對話數與使用者發言數
+      let totalMessages = 0;
+      const userCounts = {};
+      const userRegexes = userList.map(name => new RegExp('^' + name + '\s*[:：]'));
+
+      lines.forEach(line => {
+        for (let i = 0; i < userRegexes.length; i++) {
+          if (userRegexes[i].test(line)) {
+            const name = userList[i];
+            userCounts[name] = (userCounts[name] || 0) + 1;
+            totalMessages++;
+            break;
+          }
+        }
+      });
+
+      return {
+        totalDays: dateSet.size,
+        totalMessages,
+        userCounts
+      };
+    }
+
+    function displayResult(stats) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `<h2>統計結果</h2>
+        <p><strong>總天數：</strong> ${stats.totalDays} 天</p>
+        <p><strong>總對話數：</strong> ${stats.totalMessages} 則</p>`;
+
+      const userTable = Object.entries(stats.userCounts).map(([name, count]) => `
+        <tr><td>${name}</td><td>${count}</td></tr>
+      `).join('');
+
+      resultDiv.innerHTML += '<table><tr><th>使用者</th><th>對話數</th></tr>' + userTable + '</table>';
+    }
+
+    document.getElementById('analyzeBtn').addEventListener('click', () => {
+      const input = document.getElementById('userInput').value.trim();
+      if (!input || !fullText) return;
+      const userList = input.split(/\s+/);
+      const stats = analyzeTextByUser(fullText, userList);
+      displayResult(stats);
+    });
+
+    document.getElementById('userInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('analyzeBtn').click();
+      }
+    });
+  </script></body>
+</html>
