@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML 詞頻分析器</title>
+  <script src="https://cdn.jsdelivr.net/npm/jieba-zh@1.0.4/jieba-zh.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    input[type="file"] {
+      margin: 10px 0;
+      display: block;
+    }
+    .result {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>HTML 詞頻分析器</h1>
+
+  <label for="fileInput">上傳 HTML 檔案：</label>
+  <input type="file" id="fileInput" accept=".html,.htm">
+
+  <div class="result" id="result"></div>
+
+  <script>
+    function extractTextFromHTML(htmlString) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+
+      // 只選取留言區文字，排除轉發、分享、頭像、系統訊息等
+      let messages = [];
+      const messageContainers = doc.querySelectorAll("div, span, p");
+      messageContainers.forEach(el => {
+        const text = el.innerText.trim();
+        if (
+          text &&
+          !text.includes("轉發") &&
+          !text.includes("分享") &&
+          !text.match(/^\d{4}-\d{2}-\d{2}/) &&
+          !text.match(/(AM|PM|上午|下午)/) &&
+          text.length < 100
+        ) {
+          messages.push(text);
+        }
+      });
+      return messages.join(" ");
+    }
+
+    function analyzeText(text) {
+      const stopWords = new Set([
+        '的', '了', '在', '是', '和', '與', '就', '都', '而', '及', '著', '或', '一', '不', '也', '有', '我', '你', '他', '她', '它', '你們', '他們', '這', '那', '我們'
+      ]);
+      const words = window.jieba.cut(text);
+      const freq = {};
+      for (const word of words) {
+        if (word.length <= 1 || stopWords.has(word)) continue;
+        freq[word] = (freq[word] || 0) + 1;
+      }
+      const filtered = Object.entries(freq).filter(([word, count]) => count > 2);
+      const sorted = filtered.sort((a, b) => b[1] - a[1]);
+      const top30 = sorted.slice(0, 30);
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<h2>前30高頻詞（出現次數 > 2）：</h2>' +
+        '<ol>' + top30.map(([word, count]) => `<li>${word}：${count} 次</li>`).join('') + '</ol>';
+    }
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = extractTextFromHTML(reader.result);
+        analyzeText(text);
+      };
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
