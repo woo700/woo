@@ -1,71 +1,100 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>中文詞頻分析器</title>
-  <script src="https://cdn.jsdelivr.net/npm/jieba-zh-cn@1.0.0/dist/jieba.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML 詞頻分析器</title>
+  <script src="https://cdn.jsdelivr.net/npm/jieba-zh@1.0.4/jieba-zh.min.js"></script>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f7f7f7; }
-    input[type="file"] { margin-bottom: 10px; }
-    button { padding: 5px 10px; margin-left: 10px; }
-    table { border-collapse: collapse; margin-top: 20px; width: 60%; background: white; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    input[type="file"], input[type="text"], button {
+      margin: 10px 0;
+      display: block;
+    }
+    .result {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>中文詞頻分析器（HTML 單頁上傳）</h1>
-  <input type="file" id="fileInput" accept=".html,.htm">
-  <button onclick="analyzeFile()">分析整頁</button>
+  <h1>HTML 詞頻分析器</h1>
 
-  <div id="result"></div>
+  <label for="urlInput">輸入 HTML 網址：</label>
+  <input type="text" id="urlInput" placeholder="https://example.com/page.html">
+  <button onclick="fetchFromUrl()">從網址讀取並分析</button>
+
+  <label for="fileInput">或上傳 HTML 檔案：</label>
+  <input type="file" id="fileInput" accept=".html,.htm">
+
+  <button onclick="analyzeAll()">分析整頁</button>
+
+  <div class="result" id="result"></div>
 
   <script>
-    const stopWords = new Set([
-      "的", "了", "和", "是", "我", "也", "就", "在", "不", "有", "他", "她",
-      "你", "我們", "嗎", "啊", "吧", "都", "要", "會", "很", "這", "那",
-      "但", "著", "呢", "說", "與", "還", "而", "還是", "一個", "沒有", "被"
-    ]);
+    let fullText = "";
 
-    async function analyzeFile() {
-      const fileInput = document.getElementById('fileInput');
+    function extractTextFromHTML(htmlString) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+      return doc.body.innerText.replace(/\s+/g, ' ').trim();
+    }
+
+    function analyzeText(text) {
+      const stopWords = new Set([
+        '的', '了', '在', '是', '和', '與', '就', '都', '而', '及', '著', '或', '一', '不', '也', '有', '我', '你', '他', '她', '它', '我們', '你們', '他們', '這', '那'
+      ]);
+      const words = window.jieba.cut(text);
+      const freq = {};
+      for (const word of words) {
+        if (word.length <= 1 || stopWords.has(word)) continue;
+        freq[word] = (freq[word] || 0) + 1;
+      }
+      const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+      const top10 = sorted.slice(0, 10);
       const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<h2>前10高頻詞：</h2>' +
+        '<ol>' + top10.map(([word, count]) => `<li>${word}：${count} 次</li>`).join('') + '</ol>';
+    }
 
-      if (!fileInput.files[0]) {
-        alert('請選擇一個 HTML 檔案');
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        fullText = extractTextFromHTML(reader.result);
+        alert('檔案讀取完成，請點擊「分析整頁」進行分析');
+      };
+      reader.readAsText(file);
+    });
+
+    function analyzeAll() {
+      if (!fullText) {
+        alert('請先上傳檔案或載入網址內容');
         return;
       }
+      analyzeText(fullText);
+    }
 
-      const reader = new FileReader();
-      reader.onload = async function(event) {
-        const htmlContent = event.target.result;
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlContent, 'text/html');
-
-        const text = doc.body.innerText.replace(/\s+/g, '');
-
-        // 使用 jieba 分詞
-        await jieba.load();
-        const words = jieba.cut(text);
-
-        const filteredWords = words.filter(w => w.length > 1 && !stopWords.has(w));
-        const freq = {};
-        for (let word of filteredWords) {
-          freq[word] = (freq[word] || 0) + 1;
-        }
-
-        const topWords = Object.entries(freq)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 10);
-
-        let output = '<h2>前 10 名中文詞語統計</h2><table><tr><th>詞語</th><th>次數</th></tr>';
-        for (let [word, count] of topWords) {
-          output += `<tr><td>${word}</td><td>${count}</td></tr>`;
-        }
-        output += '</table>';
-        resultDiv.innerHTML = output;
-      };
-
-      reader.readAsText(fileInput.files[0], 'UTF-8');
+    function fetchFromUrl() {
+      const url = document.getElementById('urlInput').value;
+      if (!url) {
+        alert('請輸入網址');
+        return;
+      }
+      fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          fullText = extractTextFromHTML(html);
+          alert('網址載入完成，請點擊「分析整頁」進行分析');
+        })
+        .catch(err => {
+          alert('載入失敗：' + err);
+        });
     }
   </script>
 </body>
