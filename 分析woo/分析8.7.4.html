@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>聊天數量統計</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    input[type="file"] {
+      margin: 10px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    h2 {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>聊天數量統計</h1>
+  <input type="file" id="fileInput" accept=".html,.htm">
+  <div id="stats"></div>
+
+  <script>
+    const systemMessageKeywords = [
+      '按讚',
+      '已傳送',
+      '分享了',
+      '回覆了',
+      '你回應了',
+      '傳送了貼圖',
+      '傳送了影片',
+      '傳送了照片',
+      '傳送了一個表情',
+      '邀請你',
+      '加入了群組',
+      '已編輯',
+      '刪除了訊息',
+      '加入了聊天室',
+      '通話',
+      '未接來電',
+    ];
+
+    function isSystemMessage(text) {
+      return systemMessageKeywords.some(keyword => text.includes(keyword));
+    }
+
+    function extractChatData(htmlString) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+
+      const elements = doc.querySelectorAll('div, span, p');
+      const dateSet = new Set();
+      const userCount = {};
+      let messageCount = 0;
+      let currentUser = '';
+
+      elements.forEach(el => {
+        const text = el.innerText.trim();
+
+        // 抓取日期格式：例如「6 月 15, 2025」
+        const dateMatch = text.match(/(\d{1,2})\s*月\s*(\d{1,2}),\s*(\d{4})/);
+        if (dateMatch) {
+          const date = `${dateMatch[1]} 月 ${dateMatch[2]}, ${dateMatch[3]}`;
+          dateSet.add(date);
+        }
+
+        // 抓取使用者名稱（簡單假設：短字串、不包含數字或時間）
+        if (text && text.length < 30 && !text.match(/\d{1,2}\s*月.*\d{4}/) && !isSystemMessage(text)) {
+          currentUser = text;
+        } else if (text && currentUser && !isSystemMessage(text)) {
+          // 這是一段真實的對話內容
+          messageCount++;
+          userCount[currentUser] = (userCount[currentUser] || 0) + 1;
+          currentUser = ''; // 重設
+        }
+      });
+
+      return {
+        messageCount,
+        dayCount: dateSet.size,
+        userCount
+      };
+    }
+
+    function displayStats(data) {
+      const statsDiv = document.getElementById('stats');
+      statsDiv.innerHTML = `
+        <h2>統計結果</h2>
+        <p>總對話數：<strong>${data.messageCount}</strong></p>
+        <p>總天數：<strong>${data.dayCount}</strong></p>
+        <h2>使用者發言統計</h2>
+        <table>
+          <thead><tr><th>使用者</th><th>發言次數</th></tr></thead>
+          <tbody>
+            ${Object.entries(data.userCount).map(([user, count]) => `<tr><td>${user}</td><td>${count}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const stats = extractChatData(reader.result);
+        displayStats(stats);
+      };
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
