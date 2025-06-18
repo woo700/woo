@@ -1,7 +1,8 @@
-<!DOCTYPE html><html lang="zh-Hant">
+<!DOCTYPE html>
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>聊天數量統計</title>
   <style>
     body {
@@ -9,21 +10,22 @@
       max-width: 800px;
       margin: auto;
       padding: 20px;
-      background: #f9f9f9;
+      background-color: #f9f9f9;
     }
     input[type="file"] {
       margin: 10px 0;
+      display: block;
     }
-    .stats {
+    .result {
       margin-top: 20px;
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      background: #fff;
+      padding: 20px;
+      border: 1px solid #ccc;
     }
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 10px;
     }
     th, td {
       border: 1px solid #ccc;
@@ -31,47 +33,73 @@
       text-align: left;
     }
     th {
-      background-color: #f0f0f0;
+      background-color: #eee;
     }
   </style>
 </head>
 <body>
   <h1>聊天數量統計</h1>
+  <label for="fileInput">上傳 HTML 檔案：</label>
   <input type="file" id="fileInput" accept=".html,.htm">
-  <div class="stats" id="stats"></div>  <script>
-    document.getElementById('fileInput').addEventListener('change', function (e) {
-      const file = e.target.files[0];
+
+  <div class="result" id="result"></div>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function (event) {
+      const file = event.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function () {
+      reader.onload = function (e) {
         const parser = new DOMParser();
-        const doc = parser.parseFromString(reader.result, 'text/html');
+        const doc = parser.parseFromString(e.target.result, 'text/html');
+        const lines = Array.from(doc.querySelectorAll('div, span, p'))
+          .map(el => el.innerText.trim())
+          .filter(text => text);
 
-        const messageElements = doc.querySelectorAll('div, span, p');
-        const dateSet = new Set();
-        const userCount = {};
+        const userMessageCount = {};
+        const messageDates = new Set();
         let totalMessages = 0;
 
-        messageElements.forEach(el => {
-          const text = el.innerText.trim();
-          // 偵測類似使用者名稱 + 冒號/空白開頭的訊息，例如：Mari：Hello
-          const match = text.match(/^(.{1,30}?)[:\uff1a]\s*(.+)/);
-          if (match && match[2].length < 200) {
-            totalMessages++;
-            const name = match[1];
-            userCount[name] = (userCount[name] || 0) + 1;
-          }
-          // 偵測日期（例如 2025-06-18）
-          const dateMatch = text.match(/\d{4}-\d{2}-\d{2}/);
-          if (dateMatch) {
-            dateSet.add(dateMatch[0]);
-          }
-        });
+        const dateRegex = /\d{4}-\d{2}-\d{2}/;
+        let currentDate = '';
 
-        const statsDiv = document.getElementById('stats');
-        let html = `<p><strong>總對話數：</strong> ${totalMessages}</p>`;
-        html += `<p><strong>總天數：</strong> ${dateSet.size}</p>`;
-        html += '<h3>各使用者對話數：</h3>';
-        html += '<table><tr><th>使用者</th><th>句數</th></tr>';
-        for (const [user, count] of Object.entries(userCount).
+        for (let i = 0; i < lines.length - 1; i++) {
+          const line = lines[i];
+          if (dateRegex.test(line)) {
+            currentDate = line.match(dateRegex)[0];
+            messageDates.add(currentDate);
+          } else {
+            const speaker = line;
+            const message = lines[i + 1];
+
+            if (message.length < 150 && !dateRegex.test(message) && !/(轉發|分享|附件|訊息讚)/.test(message)) {
+              userMessageCount[speaker] = (userMessageCount[speaker] || 0) + 1;
+              totalMessages++;
+              i++; // skip message line
+            }
+          }
+        }
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+          <p><strong>總對話數：</strong> ${totalMessages} 則</p>
+          <p><strong>總天數：</strong> ${messageDates.size} 天</p>
+          <h3>各使用者訊息數：</h3>
+          <table>
+            <thead><tr><th>使用者</th><th>發言數</th></tr></thead>
+            <tbody>
+              ${Object.entries(userMessageCount)
+                .sort((a, b) => b[1] - a[1])
+                .map(([user, count]) => `<tr><td>${user}</td><td>${count}</td></tr>`) 
+                .join('')}
+            </tbody>
+          </table>
+        `;
+      };
+
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
