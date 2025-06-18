@@ -31,13 +31,9 @@
   <label for="fileInput">或上傳 HTML 檔案：</label>
   <input type="file" id="fileInput" accept=".html,.htm">
 
-  <button onclick="analyzeAll()">分析整頁</button>
-
   <div class="result" id="result"></div>
 
   <script>
-    let fullText = "";
-
     function extractTextFromHTML(htmlString) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlString, 'text/html');
@@ -55,10 +51,10 @@
         freq[word] = (freq[word] || 0) + 1;
       }
       const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-      const top10 = sorted.slice(0, 10);
+      const top30 = sorted.slice(0, 30);
       const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = '<h2>前10高頻詞：</h2>' +
-        '<ol>' + top10.map(([word, count]) => `<li>${word}：${count} 次</li>`).join('') + '</ol>';
+      resultDiv.innerHTML = '<h2>前30高頻詞：</h2>' +
+        '<ol>' + top30.map(([word, count]) => `<li>${word}：${count} 次</li>`).join('') + '</ol>';
     }
 
     document.getElementById('fileInput').addEventListener('change', e => {
@@ -66,19 +62,11 @@
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
-        fullText = extractTextFromHTML(reader.result);
-        alert('檔案讀取完成，請點擊「分析整頁」進行分析');
+        const text = extractTextFromHTML(reader.result);
+        analyzeText(text);
       };
       reader.readAsText(file);
     });
-
-    function analyzeAll() {
-      if (!fullText) {
-        alert('請先上傳檔案或載入網址內容');
-        return;
-      }
-      analyzeText(fullText);
-    }
 
     function fetchFromUrl() {
       const url = document.getElementById('urlInput').value;
@@ -89,8 +77,8 @@
       fetch(url)
         .then(res => res.text())
         .then(html => {
-          fullText = extractTextFromHTML(html);
-          alert('網址載入完成，請點擊「分析整頁」進行分析');
+          const text = extractTextFromHTML(html);
+          analyzeText(text);
         })
         .catch(err => {
           alert('載入失敗：' + err);
