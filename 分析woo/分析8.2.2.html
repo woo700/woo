@@ -1,0 +1,103 @@
+<!DOCTYPE html><html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>聊天數量統計</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    input[type="file"], textarea, button {
+      margin: 10px 0;
+      display: block;
+    }
+    .result {
+      margin-top: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>聊天數量統計</h1><label for="fileInput">上傳 HTML 檔案：</label> <input type="file" id="fileInput" accept=".html,.htm">
+
+<label for="userInput">輸入使用者名稱（以空格分隔）：</label>
+
+  <textarea id="userInput" rows="2" cols="50"></textarea>  <div class="result" id="result"></div>  <script>
+    function extractMessagesAndDates(htmlString) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+
+      const allTextNodes = doc.querySelectorAll('body *');
+      const messages = [];
+      const dates = new Set();
+
+      allTextNodes.forEach(el => {
+        const text = el.innerText.trim();
+        if (/\d{1,2}\s*月\s*\d{1,2},\s*\d{4}/.test(text)) {
+          const match = text.match(/\d{1,2}\s*月\s*\d{1,2},\s*\d{4}/);
+          if (match) dates.add(match[0]);
+        }
+        if (text && text.length < 100 && !/\d{1,2}\s*月\s*\d{1,2},\s*\d{4}/.test(text) && !text.match(/(上午|下午|AM|PM)/)) {
+          messages.push(text);
+        }
+      });
+
+      return { messages, uniqueDateCount: dates.size };
+    }
+
+    function analyzeMessagesByUsers(messages, userList) {
+      const counts = {};
+      for (const user of userList) {
+        counts[user] = 0;
+      }
+      for (const msg of messages) {
+        for (const user of userList) {
+          if (msg.includes(user)) {
+            counts[user]++;
+            break;
+          }
+        }
+      }
+      return counts;
+    }
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const userInput = document.getElementById('userInput').value.trim();
+        const userList = userInput ? userInput.split(/\s+/) : [];
+
+        const { messages, uniqueDateCount } = extractMessagesAndDates(reader.result);
+        const resultDiv = document.getElementById('result');
+
+        resultDiv.innerHTML = `<p><strong>對話總數：</strong> ${messages.length}</p>` +
+                              `<p><strong>總天數：</strong> ${uniqueDateCount}</p>`;
+
+        if (userList.length > 0) {
+          const counts = analyzeMessagesByUsers(messages, userList);
+          let table = '<table><tr><th>使用者名稱</th><th>對話數</th></tr>';
+          for (const user of userList) {
+            table += `<tr><td>${user}</td><td>${counts[user]}</td></tr>`;
+          }
+          table += '</table>';
+          resultDiv.innerHTML += table;
+        }
+      };
+      reader.readAsText(file);
+    });
+  </script></body>
+</html>
