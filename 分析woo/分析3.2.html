@@ -12,7 +12,7 @@
       margin: auto;
       padding: 20px;
     }
-    input[type="file"], input[type="text"], button {
+    input[type="file"] {
       margin: 10px 0;
       display: block;
     }
@@ -24,11 +24,7 @@
 <body>
   <h1>HTML 詞頻分析器</h1>
 
-  <label for="urlInput">輸入 HTML 網址：</label>
-  <input type="text" id="urlInput" placeholder="https://example.com/page.html">
-  <button onclick="fetchFromUrl()">從網址讀取並分析</button>
-
-  <label for="fileInput">或上傳 HTML 檔案：</label>
+  <label for="fileInput">上傳 HTML 檔案：</label>
   <input type="file" id="fileInput" accept=".html,.htm">
 
   <div class="result" id="result"></div>
@@ -37,12 +33,12 @@
     function extractTextFromHTML(htmlString) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlString, 'text/html');
-      return doc.body.innerText.replace(/\s+/g, ' ').trim();
+      return doc.body ? doc.body.innerText.replace(/\s+/g, ' ').trim() : '';
     }
 
     function analyzeText(text) {
       const stopWords = new Set([
-        '的', '了', '在', '是', '和', '與', '就', '都', '而', '及', '著', '或', '一', '不', '也', '有', '我', '你', '他', '她', '它', '我們', '你們', '他們', '這', '那'
+        '的', '了', '在', '是', '和', '與', '就', '都', '而', '及', '著', '或', '一', '不', '也', '有', '我', '你', '他', '她', '它', '你們', '他們', '這', '那'
       ]);
       const words = window.jieba.cut(text);
       const freq = {};
@@ -67,23 +63,6 @@
       };
       reader.readAsText(file);
     });
-
-    function fetchFromUrl() {
-      const url = document.getElementById('urlInput').value;
-      if (!url) {
-        alert('請輸入網址');
-        return;
-      }
-      fetch(url)
-        .then(res => res.text())
-        .then(html => {
-          const text = extractTextFromHTML(html);
-          analyzeText(text);
-        })
-        .catch(err => {
-          alert('載入失敗：' + err);
-        });
-    }
   </script>
 </body>
 </html>
