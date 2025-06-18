@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>聊天數量統計</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    input[type="file"], input[type="text"] {
+      margin: 10px 0;
+      display: block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    h2 {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>聊天數量統計</h1>
+  <input type="file" id="fileInput" accept=".html,.htm">
+  <label for="userInput">輸入使用者名稱（以空格分隔）：</label>
+  <input type="text" id="userInput" placeholder="例如：小明 小華">
+  <button id="analyzeBtn">分析</button>
+
+  <div id="stats"></div>
+
+  <script>
+    let rawMessages = [];
+    let totalMessageCount = 0;
+    let totalDayCount = 0;
+
+    function extractChatData(htmlString) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+
+      const elements = doc.querySelectorAll('div, span, p');
+      const dateSet = new Set();
+      const messages = [];
+
+      let currentUser = '';
+
+      elements.forEach(el => {
+        const text = el.innerText.trim();
+
+        // 日期偵測
+        const dateMatch = text.match(/(\d{1,2})\s*月\s*(\d{1,2}),\s*(\d{4})/);
+        if (dateMatch) {
+          const date = `${dateMatch[1]} 月 ${dateMatch[2]}, ${dateMatch[3]}`;
+          dateSet.add(date);
+        }
+
+        // 名稱與訊息邏輯
+        if (text && text.length < 30 && !text.match(/\d{1,2}\s*月.*\d{4}/)) {
+          currentUser = text;
+        } else if (text && currentUser) {
+          messages.push({ user: currentUser, content: text });
+        }
+      });
+
+      rawMessages = messages;
+      totalMessageCount = messages.length;
+      totalDayCount = dateSet.size;
+    }
+
+    function analyzeUserMessages(userList) {
+      const userCounts = {};
+
+      userList.forEach(user => {
+        userCounts[user] = 0;
+      });
+
+      rawMessages.forEach(msg => {
+        if (userCounts.hasOwnProperty(msg.user)) {
+          userCounts[msg.user]++;
+        }
+      });
+
+      return userCounts;
+    }
+
+    function displayStats(userCounts) {
+      const statsDiv = document.getElementById('stats');
+      statsDiv.innerHTML = `
+        <h2>統計結果</h2>
+        <p>總對話數：<strong>${totalMessageCount}</strong></p>
+        <p>總天數：<strong>${totalDayCount}</strong></p>
+        <h2>輸入使用者發言統計</h2>
+        <table>
+          <thead><tr><th>使用者</th><th>發言次數</th></tr></thead>
+          <tbody>
+            ${Object.entries(userCounts).map(([user, count]) => `<tr><td>${user}</td><td>${count}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        extractChatData(reader.result);
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('analyzeBtn').addEventListener('click', () => {
+      const userInput = document.getElementById('userInput').value.trim();
+      const userList = userInput ? userInput.split(/\s+/) : [];
+
+      const userCounts = analyzeUserMessages(userList);
+      displayStats(userCounts);
+    });
+
+    // Enter 鍵也能觸發分析
+    document.getElementById('userInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        document.getElementById('analyzeBtn').click();
+      }
+      // 只選取留言區文字，排除轉發、分享、頭像、系統訊息等
+      let messages = [];
+      const messageContainers = doc.querySelectorAll("div, span, p");
+      messageContainers.forEach(el => {
+        const text = el.innerText.trim();
+        if (
+          text &&
+          !text.includes("轉發") &&
+          !text.includes("分享") &&
+          !text.match(/^\d{4}-\d{2}-\d{2}/) &&
+          !text.match(/(AM|PM|上午|下午)/) &&
+          text.length < 100
+        ) {
+          messages.push(text);
+        }
+      });
+      return messages.join(" ");
+    }
+
+   function analyzeText(text) {
+  const stopWords = new Set(['的', '了', '在', '是', '和', '與', '就', '都', '而', '及', '著', '或', '一', '不', '也', '有', '我', '你', '他', '她', '它', '你們', '他們', '這', '那','com','https','Instagram','stories','edited','對你的訊息','傳達了','心情','則訊息讚','點擊收聽音訊','maps','app','goo','gl','ann','instagram','tw','黄郁善傳送了','份附件','你傳送了','個附件','tontonfriends','annhttps','點擊觀看影片']);
+
+  const words = text
+    .replace(/[^\u4e00-\u9fa5a-zA-Z]/g, ' ') // 去除符號，保留中英文字
+    .split(/\s+/)                            // 以空白分詞
+    .filter(word => word.length > 1 && !stopWords.has(word)); // 過濾停用詞與單字
+
+  const freq = {};
+  for (const word of words) {
+    freq[word] = (freq[word] || 0) + 1;
+  }
+
+  const sorted = Object.entries(freq).filter(([w, c]) => c > 2).sort((a, b) => b[1] - a[1]);
+  const top30 = sorted.slice(0, 30);
+
+  const resultDiv = document.getElementById('result');
+  resultDiv.innerHTML = '<h2>前 30 高出現頻率詞：</h2>' +
+    '<ol>' + top30.map(([word, count]) => `<li>${word}：${count} 次</li>`).join('') + '</ol>';
+}
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = extractTextFromHTML(reader.result);
+        analyzeText(text);
+      };
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
