@@ -41,53 +41,53 @@
       reader.onload = () => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(reader.result, 'text/html');
-        const elements = doc.querySelectorAll('div, span, p'); // 寬鬆抓取所有文字元素
 
+        // 寬鬆抓取日期（所有符合格式的文字）
+        const allElements = doc.querySelectorAll('div, span, p');
         const dateSet = new Set();
-        const userCount = {};
-        let messageCount = 0;
-        let currentUser = null;
-        let lastWasUser = false;
-
-        elements.forEach(el => {
+        allElements.forEach(el => {
           const text = el.innerText.trim();
           if (!text) return;
-
-          // 抓日期格式，例如「6 月 15, 2025」
           const dateMatch = text.match(/(\d{1,2})\s*月\s*(\d{1,2}),\s*(\d{4})/);
           if (dateMatch) {
             const dateStr = `${dateMatch[1]} 月 ${dateMatch[2]}, ${dateMatch[3]}`;
             dateSet.add(dateStr);
-            currentUser = null; // 換日期就重置使用者，避免跨訊息誤算
-            lastWasUser = false;
-            return;
           }
+        });
+        const dayCount = dateSet.size;
 
-          // 判斷是否是使用者名稱（條件：字數適中，且上一個不是使用者，避免重複）
-          if (
-            text.length <= 30 &&
-            !text.match(/^\d{1,2}\s*月/) &&
-            !lastWasUser
-          ) {
-            currentUser = text;
-            lastWasUser = true;
-            return;
-          }
-
-          // 不是使用者，且之前有設定使用者，視為訊息內容
-          if (currentUser && text.length > 0) {
-            messageCount++;
-            userCount[currentUser] = (userCount[currentUser] || 0) + 1;
-            lastWasUser = false;
+        // 寬鬆計算總對話數（所有非空且非日期的文字）
+        let totalMessages = 0;
+        allElements.forEach(el => {
+          const text = el.innerText.trim();
+          if (!text) return;
+          // 排除日期格式和空白行
+          if (!text.match(/^\d{1,2}\s*月\s*\d{1,2},\s*\d{4}$/)) {
+            totalMessages++;
           }
         });
 
-        displayStats(messageCount, dateSet.size, userCount);
+        // 嚴格抓取使用者發言統計
+        const blocks = doc.querySelectorAll('div.pam');
+        const userCount = {};
+
+        blocks.forEach(block => {
+          const nameEl = block.querySelector('h2');
+          const msgEl = block.querySelector('._a6-p div div:nth-child(2)');
+          const name = nameEl?.innerText.trim();
+          const msg = msgEl?.innerText.trim();
+
+          if (msg && name) {
+            userCount[name] = (userCount[name] || 0) + 1;
+          }
+        });
+
+        displayStats(totalMessages, dayCount, userCount);
       };
       reader.readAsText(file);
     });
 
-    function displayStats(messageCount, dayCount, userStats) {
+    function displayStats(totalMessages, dayCount, userStats) {
       const statsDiv = document.getElementById('stats');
       const userRows = Object.entries(userStats)
         .map(([name, count]) => `<tr><td>${name}</td><td>${count}</td></tr>`)
@@ -95,9 +95,9 @@
 
       statsDiv.innerHTML = `
         <h2>統計結果</h2>
-        <p>總對話數：<strong>${messageCount}</strong></p>
+        <p>總對話數（寬鬆計算）：<strong>${totalMessages}</strong></p>
         <p>總天數：<strong>${dayCount}</strong></p>
-        <h2>使用者發言統計</h2>
+        <h2>使用者發言統計（嚴格計算）</h2>
         <table>
           <thead><tr><th>使用者</th><th>發言次數</th></tr></thead>
           <tbody>${userRows}</tbody>
