@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>聊天數量統計</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    input[type="file"] {
+      display: block;
+      margin-top: 10px;
+      width: 100%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>聊天數量統計</h1>
+  <input type="file" id="fileInput" accept=".html,.htm">
+  <div id="stats"></div>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(reader.result, 'text/html');
+        const blocks = doc.querySelectorAll('div.pam');
+
+        const dateSet = new Set();
+        const allMessages = [];
+        const userCount = {};
+
+        blocks.forEach(block => {
+          const nameEl = block.querySelector('h2');
+          const msgEl = block.querySelector('._a6-p div div:nth-child(2)');
+          const dateEl = block.querySelector('._3-94');
+
+          const name = nameEl?.innerText.trim();
+          const msg = msgEl?.innerText.trim();
+          const dateText = dateEl?.innerText.trim();
+          const dateMatch = dateText?.match(/(\d{1,2})\s*月\s*(\d{1,2}),\s*(\d{4})/);
+          const dateStr = dateMatch ? `${dateMatch[1]} 月 ${dateMatch[2]}, ${dateMatch[3]}` : null;
+
+          if (dateStr) dateSet.add(dateStr);
+          if (msg) {
+            allMessages.push({ name, msg });
+            if (name) {
+              userCount[name] = (userCount[name] || 0) + 1;
+            }
+          }
+        });
+
+        const messageCount = allMessages.length;
+        const dayCount = dateSet.size;
+
+        displayStats(messageCount, dayCount, userCount);
+      };
+      reader.readAsText(file);
+    });
+
+    function displayStats(messageCount, dayCount, userStats) {
+      const statsDiv = document.getElementById('stats');
+      const userRows = Object.entries(userStats)
+        .map(([name, count]) => `<tr><td>${name}</td><td>${count}</td></tr>`)
+        .join('');
+
+      statsDiv.innerHTML = `
+        <h2>統計結果</h2>
+        <p>總對話數：<strong>${messageCount}</strong></p>
+        <p>總天數：<strong>${dayCount}</strong></p>
+        <h2>使用者發言統計</h2>
+        <table>
+          <thead><tr><th>使用者</th><th>發言次數</th></tr></thead>
+          <tbody>${userRows}</tbody>
+        </table>
+      `;
+    }
+  </script>
+</body>
+</html>
