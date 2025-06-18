@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>聊天數量統計</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    input[type="file"] {
+      display: block;
+      margin-top: 10px;
+      width: 100%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>聊天數量統計</h1>
+  <input type="file" id="fileInput" accept=".html,.htm" />
+  <div id="stats"></div>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(reader.result, 'text/html');
+
+        // 寬鬆抓日期（所有符合格式）
+        const allElements = doc.querySelectorAll('div, span, p');
+        const dateSet = new Set();
+        allElements.forEach(el => {
+          const text = el.innerText.trim();
+          if (!text) return;
+          const dateMatch = text.match(/(\d{1,2})\s*月\s*(\d{1,2}),\s*(\d{4})/);
+          if (dateMatch) {
+            const dateStr = `${dateMatch[1]} 月 ${dateMatch[2]}, ${dateMatch[3]}`;
+            dateSet.add(dateStr);
+          }
+        });
+        const dayCount = dateSet.size;
+
+        // 寬鬆計算總對話數（所有非空且非純日期文字）
+        let totalMessages = 0;
+        allElements.forEach(el => {
+          const text = el.innerText.trim();
+          if (!text) return;
+          if (!text.match(/^\d{1,2}\s*月\s*\d{1,2},\s*\d{4}$/)) {
+            totalMessages++;
+          }
+        });
+
+        // 寬鬆計算使用者發言數（用簡單方法抓名稱和訊息）
+        const userCount = {};
+        const possibleUserEls = doc.querySelectorAll('h2, span, div'); // 多抓一些元素嘗試抓名稱
+
+        possibleUserEls.forEach(el => {
+          const text = el.innerText.trim();
+          if (!text) return;
+
+          // 簡單判定：名稱通常字數不長(<=20)，且不包含日期格式
+          if (text.length > 0 && text.length <= 20 && !text.match(/\d{1,2}\s*月/)) {
+            // 計算同個名稱出現次數，代表發言數
+            userCount[text] = (userCount[text] || 0) + 1;
+          }
+        });
+
+        // 排序並限制最多10位
+        const sortedUsers = Object.entries(userCount)
+          .sort((a,b) => b[1] - a[1])
+          .slice(0, 10);
+
+        // 建物限制後物件
+        const limitedUserCount = {};
+        sortedUsers.forEach(([name, count]) => {
+          limitedUserCount[name] = count;
+        });
+
+        displayStats(totalMessages, dayCount, limitedUserCount);
+      };
+      reader.readAsText(file);
+    });
+
+    function displayStats(totalMessages, dayCount, userStats) {
+      const statsDiv = document.getElementById('stats');
+      const userRows = Object.entries(userStats)
+        .map(([name, count]) => `<tr><td>${name}</td><td>${count}</td></tr>`)
+        .join('');
+
+      statsDiv.innerHTML = `
+        <h2>統計結果</h2>
+        <p>總對話數（寬鬆計算）：<strong>${totalMessages}</strong></p>
+        <p>總天數：<strong>${dayCount}</strong></p>
+        <h2>使用者發言統計（寬鬆計算，最多顯示10位）</h2>
+        <table>
+          <thead><tr><th>使用者</th><th>發言次數</th></tr></thead>
+          <tbody>${userRows}</tbody>
+        </table>
+      `;
+    }
+  </script>
+</body>
+</html>
