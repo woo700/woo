@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>聊天數量統計</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    .result { margin-top: 20px; }
+    table { border-collapse: collapse; width: 100%; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    #userInput { width: 100%; padding: 6px; margin: 10px 0; }
+    #analyzeBtn { padding: 6px 12px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>聊天數量統計</h1>
+
+  <input type="file" id="fileInput" accept=".html,.htm" />
+  <label for="userInput">請輸入使用者名稱（以空格分隔）：</label>
+  <input type="text" id="userInput" placeholder="例如：Alice Bob 小王" />
+  <button id="analyzeBtn">顯示統計</button>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    let globalText = '';
+
+    function extractTextFromHTML(htmlString) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+      const allTexts = Array.from(doc.querySelectorAll("body *")).map(el => el.innerText.trim()).filter(Boolean);
+      return allTexts.join("\n");
+    }
+
+    function analyzeChat(text, userList) {
+      const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+
+      // 日期格式如「6 月 15, 2025」
+      const dateRegex = /^(\d{1,2}) 月 (\d{1,2}), (\d{4})/;
+      const uniqueDates = new Set();
+      let totalMessages = 0;
+      const userCounts = {};
+
+      for (const line of lines) {
+        if (dateRegex.test(line)) {
+          const dateMatch = line.match(dateRegex);
+          if (dateMatch) {
+            const dateStr = `${dateMatch[1]} 月 ${dateMatch[2]}, ${dateMatch[3]}`;
+            uniqueDates.add(dateStr);
+          }
+        }
+
+        for (const user of userList) {
+          if (line.startsWith(user + ":") || line.startsWith(user + "：")) {
+            userCounts[user] = (userCounts[user] || 0) + 1;
+            totalMessages++;
+          }
+        }
+      }
+
+      // 顯示結果
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <h2>總聊天數量統計</h2>
+        <p>總對話數：${totalMessages}</p>
+        <p>總天數：${uniqueDates.size}</p>
+        <h3>使用者對話次數統計</h3>
+        <table>
+          <tr><th>使用者名稱</th><th>對話次數</th></tr>
+          ${userList.map(name => `<tr><td>${name}</td><td>${userCounts[name] || 0}</td></tr>`).join('')}
+        </table>
+      `;
+    }
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        globalText = extractTextFromHTML(reader.result);
+      };
+      reader.readAsText(file);
+    });
+
+    function handleAnalyze() {
+      const userInput = document.getElementById('userInput').value.trim();
+      if (!globalText || !userInput) return;
+      const userList = userInput.split(/\s+/);
+      analyzeChat(globalText, userList);
+    }
+
+    document.getElementById('analyzeBtn').addEventListener('click', handleAnalyze);
+    document.getElementById('userInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAnalyze();
+      }
+    });
+  </script>
+</body>
+</html>
