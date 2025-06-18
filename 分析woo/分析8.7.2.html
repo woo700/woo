@@ -49,11 +49,16 @@
 
         blocks.forEach(block => {
           const nameEl = block.querySelector('h2');
-          const msgEl = block.querySelector('._a6-p div div:nth-child(2)');
+          const msgCandidates = block.querySelectorAll('._a6-p div div');
           const dateEl = block.querySelector('._3-94');
 
           const name = nameEl?.innerText.trim();
-          const msg = msgEl?.innerText.trim();
+          let msg = '';
+          msgCandidates.forEach(d => {
+            const t = d.innerText?.trim();
+            if (t && !msg && t.length <= 200) msg = t;
+          });
+
           const dateText = dateEl?.innerText.trim();
           const dateMatch = dateText?.match(/(\d{1,2})\s*月\s*(\d{1,2}),\s*(\d{4})/);
           const dateStr = dateMatch ? `${dateMatch[1]} 月 ${dateMatch[2]}, ${dateMatch[3]}` : null;
