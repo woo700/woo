@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML 詞頻分析工具</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+    #result { margin-top: 20px; }
+    table { border-collapse: collapse; width: 50%; background: white; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>HTML 詞頻分析工具</h1>
+  <input type="file" id="fileInput" accept=".html" />
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(e.target.result, 'text/html');
+        const text = doc.body.innerText;
+
+        // 將文字內容轉小寫，移除非文字字元，並以空格分詞
+        const words = text
+          .toLowerCase()
+          .replace(/[^a-zA-Z\u4e00-\u9fa5\s]/g, '') // 保留中英文字
+          .split(/\s+/)
+          .filter(Boolean);
+
+        const frequency = {};
+        words.forEach(word => {
+          frequency[word] = (frequency[word] || 0) + 1;
+        });
+
+        const topWords = Object.entries(frequency)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10);
+
+        // 顯示結果
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = '<h2>前 10 名詞語統計</h2>';
+        let table = '<table><tr><th>詞語</th><th>次數</th></tr>';
+        topWords.forEach(([word, count]) => {
+          table += `<tr><td>${word}</td><td>${count}</td></tr>`;
+        });
+        table += '</table>';
+        resultDiv.innerHTML += table;
+      };
+
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
