@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>網址詞頻分析工具</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+    input, button { padding: 8px; margin: 5px; font-size: 1rem; }
+    #result { margin-top: 20px; }
+    table { border-collapse: collapse; width: 60%; background: white; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>輸入網址進行詞頻分析</h1>
+  <input type="text" id="urlInput" placeholder="請輸入網址，如 https://example.com/page.html" size="60"/>
+  <button onclick="analyzeURL()">分析</button>
+  <div id="result"></div>
+
+  <script>
+    async function analyzeURL() {
+      const url = document.getElementById('urlInput').value.trim();
+      if (!url) return alert('請輸入網址');
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '分析中，請稍候...';
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('無法取得該網頁');
+
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const text = doc.body.innerText;
+
+        const words = text
+          .toLowerCase()
+          .replace(/[^a-zA-Z\u4e00-\u9fa5\s]/g, '')
+          .split(/\s+/)
+          .filter(Boolean);
+
+        const frequency = {};
+        words.forEach(word => {
+          frequency[word] = (frequency[word] || 0) + 1;
+        });
+
+        const topWords = Object.entries(frequency)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10);
+
+        // 顯示結果
+        resultDiv.innerHTML = '<h2>前 10 名詞語統計</h2>';
+        let table = '<table><tr><th>詞語</th><th>次數</th></tr>';
+        topWords.forEach(([word, count]) => {
+          table += `<tr><td>${word}</td><td>${count}</td></tr>`;
+        });
+        table += '</table>';
+        resultDiv.innerHTML += table;
+
+      } catch (err) {
+        console.error(err);
+        resultDiv.innerHTML = '❌ 抱歉，無法抓取該網址內容（可能是 CORS 限制）';
+      }
+    }
+  </script>
+</body>
+</html>
