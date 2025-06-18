@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>聊天數量統計</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    input[type="file"], input[type="text"], button {
+      margin: 10px 0;
+      display: block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>聊天數量統計</h1>
+  <input type="file" id="fileInput" accept=".html,.htm">
+
+  <label for="userInput">輸入使用者名稱（以空格分隔）：</label>
+  <input type="text" id="userInput" placeholder="例：ななよ 黄郁善">
+  <button id="analyzeBtn">分析</button>
+
+  <div id="stats"></div>
+
+  <script>
+    let globalMessages = []; // 儲存所有訊息內容與使用者
+    let globalDates = new Set();
+
+    function extractChatData(htmlString) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+      const messageBlocks = doc.querySelectorAll(".pam");
+      globalMessages = []; // 重置
+      globalDates.clear();
+
+      messageBlocks.forEach(block => {
+        const nameEl = block.querySelector("h2");
+        const messageEl = block.querySelector("._a6-p div div:nth-child(2)");
+        const dateEl = block.querySelector("._a6-o");
+
+        const name = nameEl ? nameEl.textContent.trim() : '';
+        const message = messageEl ? messageEl.textContent.trim() : '';
+        const date = dateEl ? dateEl.textContent.trim().match(/(\d{1,2}\s*月\s*\d{1,2},\s*\d{4})/) : null;
+
+        if (message && name) {
+          globalMessages.push({ user: name, text: message });
+        }
+        if (date && date[1]) {
+          globalDates.add(date[1]);
+        }
+      });
+    }
+
+    function displayStats() {
+      const statsDiv = document.getElementById('stats');
+      const userInput = document.getElementById('userInput').value.trim();
+      const inputNames = userInput.split(/\s+/);
+      const userCount = {};
+
+      globalMessages.forEach(({ user }) => {
+        if (inputNames.includes(user)) {
+          userCount[user] = (userCount[user] || 0) + 1;
+        }
+      });
+
+      const totalMessages = globalMessages.length;
+      const totalDays = globalDates.size;
+
+      let html = `<p>總對話數：<strong>${totalMessages}</strong></p>`;
+      html += `<p>總天數：<strong>${totalDays}</strong></p>`;
+
+      if (inputNames.length > 0 && userInput !== '') {
+        html += '<h2>使用者發言次數</h2><table><thead><tr><th>使用者</th><th>對話數</th></tr></thead><tbody>';
+        inputNames.forEach(name => {
+          html += `<tr><td>${name}</td><td>${userCount[name] || 0}</td></tr>`;
+        });
+        html += '</tbody></table>';
+      }
+      statsDiv.innerHTML = html;
+    }
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        extractChatData(reader.result);
+        displayStats();
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('analyzeBtn').addEventListener('click', () => {
+      displayStats();
+    });
+  </script>
+</body>
+</html>
