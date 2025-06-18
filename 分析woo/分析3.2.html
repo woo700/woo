@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>中文詞頻分析器</title>
+  <script src="https://cdn.jsdelivr.net/npm/jieba-zh-cn@1.0.0/dist/jieba.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f7f7f7; }
+    input[type="file"] { margin-bottom: 10px; }
+    button { padding: 5px 10px; margin-left: 10px; }
+    table { border-collapse: collapse; margin-top: 20px; width: 60%; background: white; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+  </style>
+</head>
+<body>
+  <h1>中文詞頻分析器（HTML 單頁上傳）</h1>
+  <input type="file" id="fileInput" accept=".html,.htm">
+  <button onclick="analyzeFile()">分析整頁</button>
+
+  <div id="result"></div>
+
+  <script>
+    const stopWords = new Set([
+      "的", "了", "和", "是", "我", "也", "就", "在", "不", "有", "他", "她",
+      "你", "我們", "嗎", "啊", "吧", "都", "要", "會", "很", "這", "那",
+      "但", "著", "呢", "說", "與", "還", "而", "還是", "一個", "沒有", "被"
+    ]);
+
+    async function analyzeFile() {
+      const fileInput = document.getElementById('fileInput');
+      const resultDiv = document.getElementById('result');
+
+      if (!fileInput.files[0]) {
+        alert('請選擇一個 HTML 檔案');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function(event) {
+        const htmlContent = event.target.result;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlContent, 'text/html');
+
+        const text = doc.body.innerText.replace(/\s+/g, '');
+
+        // 使用 jieba 分詞
+        await jieba.load();
+        const words = jieba.cut(text);
+
+        const filteredWords = words.filter(w => w.length > 1 && !stopWords.has(w));
+        const freq = {};
+        for (let word of filteredWords) {
+          freq[word] = (freq[word] || 0) + 1;
+        }
+
+        const topWords = Object.entries(freq)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10);
+
+        let output = '<h2>前 10 名中文詞語統計</h2><table><tr><th>詞語</th><th>次數</th></tr>';
+        for (let [word, count] of topWords) {
+          output += `<tr><td>${word}</td><td>${count}</td></tr>`;
+        }
+        output += '</table>';
+        resultDiv.innerHTML = output;
+      };
+
+      reader.readAsText(fileInput.files[0], 'UTF-8');
+    }
+  </script>
+</body>
+</html>
