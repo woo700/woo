@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>中文詞頻分析器（HTML 區塊選擇）</title>
+  <script src="https://cdn.jsdelivr.net/npm/jieba-zh-cn@1.0.0/dist/jieba.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f7f7f7; }
+    input[type="file"] { margin-bottom: 10px; }
+    button { padding: 5px 10px; margin: 5px; }
+    .block-preview { background: #fff; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+    table { border-collapse: collapse; margin-top: 20px; width: 60%; background: white; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+  </style>
+</head>
+<body>
+  <h1>中文詞頻分析器（可選 HTML 區塊）</h1>
+  <input type="file" id="fileInput" accept=".html,.htm">
+  <button onclick="analyzeWholePage()">分析整頁</button>
+  <div id="blockList"></div>
+  <div id="result"></div>
+
+  <script>
+    const stopWords = new Set([
+      "的", "了", "和", "是", "我", "也", "就", "在", "不", "有", "他", "她",
+       "嗎", "啊", "吧", "都", "要", "會", "很", "這", "那",
+      "但", "著", "呢", "說", "與", "還", "而", "還是", "一個", "沒有", "被"
+    ]);
+
+    let doc = null;
+
+    document.getElementById('fileInput').addEventListener('change', async function() {
+      const file = this.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(event) {
+        const htmlContent = event.target.result;
+        const parser = new DOMParser();
+        doc = parser.parseFromString(htmlContent, 'text/html');
+        await jieba.load();
+        displayBlocks();
+      };
+      reader.readAsText(file, 'UTF-8');
+    });
+
+    function displayBlocks() {
+      const blockList = document.getElementById('blockList');
+      blockList.innerHTML = '<h2>可選擇的文字區塊</h2>';
+      const blocks = doc.querySelectorAll('p, div, article, section');
+      let count = 0;
+      blocks.forEach((el, i) => {
+        const text = el.innerText.trim();
+        if (text.length >= 20 && count < 10) {
+          const short = text.slice(0, 60).replace(/\s+/g, '') + '...';
+          const btn = `<button onclick="analyzeText(\`${text.replace(/`/g, '\\`')}\`)">分析這段</button>`;
+          blockList.innerHTML += `<div class="block-preview"><strong>預覽：</strong>${short}<br>${btn}</div>`;
+          count++;
+        }
+      });
+    }
+
+    function analyzeWholePage() {
+      if (!doc) return alert('請先上傳 HTML 檔');
+      const text = doc.body.innerText.replace(/\s+/g, '');
+      analyzeText(text);
+    }
+
+    function analyzeText(text) {
+      const words = jieba.cut(text);
+      const filtered = words.filter(w => w.length > 1 && !stopWords.has(w));
+      const freq = {};
+      for (let word of filtered) {
+        freq[word] = (freq[word] || 0) + 1;
+      }
+      const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 30);
+      let output = '<h2>前 10 名中文詞語統計</h2><table><tr><th>詞語</th><th>次數</th></tr>';
+      for (let [word, count] of top) {
+        output += `<tr><td>${word}</td><td>${count}</td></tr>`;
+      }
+      output += '</table>';
+      document.getElementById('result').innerHTML = output;
+    }
+  </script>
+</body>
+</html>
