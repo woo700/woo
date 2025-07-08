@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>特性搜尋</title>
+  <style>
+      @font-face {
+      font-family: 'OtomanoKanji-Regular';
+      src: url('../Font/OtomanoKanji-Regular.woff') format('woff');
+    }
+    /*  @font-face {
+      font-family: 'SetoFont';
+      src: url('../Font/SetoFont.woff') format('woff');
+    }
+      @font-face {
+      font-family: 'uzura';
+      src: url('../Font/uzura.woff') format('woff');
+    }*/
+       @font-face {
+      font-family: '華康竹風體';
+      src: url('../Font/華康竹風體.woff') format('woff');
+    }
+          @font-face {
+      font-family: '小賴字體';
+      src: url('../Font/Kosefont-JP.woff') format('woff');
+    }
+    
+    body {
+      font-family: "華康竹風體", sans-serif;
+      color: #8a6b55;
+      font-size: 40px;
+      background: linear-gradient(to right, #f5eee5, #f5eee5);
+      padding: 20px;
+    }
+    #description {
+    font-family: "小賴字體", sans-serif;
+    font-size: 35px;
+    color: #8a6b55;
+    margin-bottom: 20px;
+    line-height: 1.2;
+    }
+    .section {
+      margin-bottom: 1em;
+    }
+    .collapsible {
+      /*font-weight: bold;*/
+      background-color: #e2c4ad;
+      color: #5f4945;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      width: 100%;
+      text-align: left;
+      font-size: 40px;
+      font-family: "小賴字體", sans-serif;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .content {
+      font-family: "華康竹風體", sans-serif;
+      font-size: 35px;
+      display: none;
+      padding: 0 15px;
+      margin-top: 5px;
+    }
+    .btn {
+      margin: 4px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 35px;
+      font-family: "小賴字體", sans-serif;
+      cursor: pointer;
+    }
+    /* 色コードを変更 */
+    .yellow { background-color: #e5c77a; }
+    .red { background-color: #ebb2ac; }
+    .green { background-color: #add2a3; }
+    .blue { background-color: #9bc2e9; }
+    .purple { background-color: #c1a5d9; }
+
+    .selected {
+      box-shadow: 0 0 10px #c0b9b4;
+      opacity: 0.7;
+    }
+    #traitsInput {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 40px;
+      border-radius: 5px;
+      font-family: "華康竹風體", sans-serif;
+      border: 1px solid #ccc;
+    }
+    #clearBtn {
+      background-color: #a5a2a7;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 40px;
+      font-family: "小賴字體", sans-serif;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #results {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #fff;
+      border-radius: 8px;
+      font-size: 35px ;
+      font-family: "華康竹風體", sans-serif;
+       line-height: 1 ;
+    }
+    h2 {
+  font-family: "OtomanoKanji-Regular", sans-serif;
+      color: #8a6b55;
+      font-size: 55px;
+    }
+    
+  </style>
+</head>
+<body>
+  <h2>魔法使的約定育成地點搜尋</h2>
+  <p id="description">輸入特性或點選下方按鈕就可以搜尋交流大成功時，有機會獲得該特性的育成地點。<br>最多可一次選擇5個特性。</p>
+
+  <div class="section">
+
+    <button class="collapsible">◇稀有度4</button>
+    <div class="content">
+      <!-- #E5BE7A -->
+      <button class="btn yellow">神聖</button>
+      <button class="btn yellow">正義</button>
+      <button class="btn yellow">威嚴</button>
+
+      <!-- #E09D94 -->
+      <button class="btn red">勇氣</button>
+      <button class="btn red">愛情</button>
+      <button class="btn red">勝利</button><br>
+
+      <!-- #A4C69B -->
+      <button class="btn green">自然</button>
+      <button class="btn green">幸運</button>
+      <button class="btn green">再生</button>
+
+      <!-- #78A5D4 -->
+      <button class="btn blue">信賴</button>
+      <button class="btn blue">誠實</button>
+      <button class="btn blue">殘酷</button><br>
+
+      <!-- #9E72D9 -->
+      <button class="btn purple">神秘</button>
+      <button class="btn purple">優雅</button>
+      <button class="btn purple">高貴</button><br>
+    </div>
+
+    <button class="collapsible">◇稀有度3</button>
+    <div class="content">
+      <!-- #E5BE7A -->
+      <button class="btn yellow">信念</button>
+      <button class="btn yellow">祝福</button>
+      <button class="btn yellow">純粹</button>
+
+      <!-- #E09D94 -->
+      <button class="btn red">希望</button>
+      <button class="btn red">熱情</button>
+      <button class="btn red">熱血</button><br>
+
+      <!-- #A4C69B -->
+      <button class="btn green">堅實</button>
+      <button class="btn green">古風</button>
+      <button class="btn green">樂觀</button>
+
+      <!-- #78A5D4 -->
+      <button class="btn blue">智慧</button>
+      <button class="btn blue">忠心</button>
+      <button class="btn blue">自由</button><br>
+
+      <!-- #9E72D9 -->
+      <button class="btn purple">壞心眼</button>
+      <button class="btn purple">藝術</button>
+      <button class="btn purple">奔放</button><br>
+    </div>
+
+    <button class="collapsible">◇稀有度2</button>
+    <div class="content">
+      <!-- #E5BE7A -->
+      <button class="btn yellow">清潔</button>
+      <button class="btn yellow">和睦</button>
+      <button class="btn yellow">公平</button>
+
+      <!-- #E09D94 -->
+      <button class="btn red">華麗</button>
+      <button class="btn red">靈敏</button>
+      <button class="btn red">活力</button><br>
+
+      <!-- #A4C69B -->
+      <button class="btn green">耐力</button>
+      <button class="btn green">療癒</button>
+      <button class="btn green">安定</button>
+
+      <!-- #78A5D4 -->
+      <button class="btn blue">細膩</button>
+      <button class="btn blue">溫柔</button>
+      <button class="btn blue">宏大</button><br>
+
+      <!-- #9E72D9 -->
+      <button class="btn purple">朝氣</button>
+      <button class="btn purple">魅力</button>
+      <button class="btn purple">高尚</button><br>
+    </div>
+
+    <button class="collapsible">◇稀有度1</button>
+    <div class="content">
+      <!-- #E5BE7A -->
+      <button class="btn yellow">認真</button>
+      <button class="btn yellow">直率</button>
+      <button class="btn yellow">純潔</button>
+
+      <!-- #E09D94 -->
+      <button class="btn red">積極</button>
+      <button class="btn red">有精神</button>
+      <button class="btn red">自信</button><br>
+
+
+      <!-- #A4C69B -->
+      <button class="btn green">祥和</button>
+      <button class="btn green">清爽</button>
+      <button class="btn green">頑固</button>
+
+      <!-- #78A5D4 -->
+      <button class="btn blue">寂寞</button>
+      <button class="btn blue">內向</button>
+      <button class="btn blue">冷靜</button><br>
+
+      <!-- #9E72D9 -->
+      <button class="btn purple">孤獨</button>
+      <button class="btn purple">雙面人</button>
+      <button class="btn purple">性感</button><br>
+    </div>
+
+  </div>
+
+  <input type="text" id="traitsInput" placeholder="選擇的特性會表示在這裡（用空格區分）">
+  <button id="clearBtn">清除資料</button>
+  <div id="results"></div>
+
+  <script>
+    const buttons = document.querySelectorAll('.btn');
+    const inputField = document.getElementById('traitsInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const results = document.getElementById('results');
+    let selectedTraits = [];
+
+    const zones = {
+      "格蘭威爾城": ["神聖", "自然", "希望", "祝福", "智慧", "藝術", "清爽", "孤獨"],
+      "奧茲的爪痕": ["勇氣", "幸運", "信念", "堅實", "活力", "溫柔", "內向", "性感"],
+    "榮光鎮": ["威嚴", "再生", "純粹", "自由", "療癒", "魅力", "積極", "冷靜"],
+    "已知的遺跡": ["愛情", "高貴", "祝福", "樂觀", "華麗", "朝氣", "清爽", "寂寞"],
+    "夢之森": ["信賴", "神秘", "忠心", "壞心眼", "清潔", "安定", "自信", "純潔"],
+    "冰之森": ["誠實", "高貴", "熱情", "信念", "奔放", "高尚", "有精神", "寂寞"],
+    "冰之鎮": ["勝利", "幸運",  "忠心", "藝術", "清潔", "耐力", "冷靜", "雙面人"],
+    "時之洞窟": ["威嚴", "殘酷", "樂觀", "奔放", "靈敏", "高尚", "自信", "直率"],
+    "死之湖": ["勇氣", "信賴", "希望", "信念", "療癒", "魅力", "頑固", "純潔"],
+    "雨之鎮": ["殘酷", "神秘", "熱情", "祝福", "公平", "細膩", "清爽", "孤獨"],
+    "薛伍德之森": ["誠實", "優雅", "熱情", "奔放", "和睦", "宏大", "有精神", "頑固"],
+    "布蘭謝德城": ["勝利", "信賴", "殘酷", "堅實", "壞心眼", "清潔", "宏大", "認真", "祥和"],
+    "嵐之谷": ["威嚴", "自然", "古風", "自由",  "活力", "溫柔", "有精神", "性感"],
+    "人跡罕至的天文台": ["愛情", "正義", "熱血", "古風", "智慧", "朝氣", "認真", "祥和"],
+    "泡沫之鎮": ["勇氣", "神聖","熱血", "堅實", "療癒", "細膩", "直率", "孤獨"],
+    "豐饒鎮": ["再生", "神秘", "熱血", "純粹", "華麗", "公平", "內向", "性感"],
+    "貝涅特酒館": ["正義", "幸運", "忠心", "藝術", "安定", "溫柔", "積極", "純潔"],
+    "疫沼": ["勝利", "自然", "古風", "自由", "華麗", "和睦", "冷靜", "雙面人"],
+    "第谷湖": ["信賴", "優雅", "希望", "純粹", "公平", "耐力", "頑固", "內向"],
+    "雲之鎮": ["愛情", "再生", "樂觀", "靈敏", "魅力", "耿直", "寂寞", "雙面人"],
+    "雷塔山脈": ["神聖", "誠實", "智慧", "壞心眼", "活力", "耐力", "積極", "認真"],
+      };
+
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const trait = btn.textContent;
+    if (selectedTraits.includes(trait)) {
+      selectedTraits = selectedTraits.filter(t => t !== trait);
+      btn.classList.remove('selected');
+    } else {
+      if (selectedTraits.length < 5) {
+        selectedTraits.push(trait);
+        btn.classList.add('selected');
+      }
+    }
+    inputField.value = selectedTraits.join(' ');
+    updateResults(); // ✅ 每次變更 trait 都會重新排序更新結果
+  });
+});
+
+clearBtn.addEventListener('click', () => {
+  selectedTraits = [];
+  buttons.forEach(btn => btn.classList.remove('selected'));
+  inputField.value = '';
+  results.innerHTML = '';
+});
+
+inputField.addEventListener('input', () => {
+  selectedTraits = inputField.value.trim().split(/\s+/).filter(Boolean);
+  buttons.forEach(btn => {
+    if (selectedTraits.includes(btn.textContent)) {
+      btn.classList.add('selected');
+    } else {
+      btn.classList.remove('selected');
+    }
+  });
+  updateResults(); // ✅ 輸入欄位變更時也會觸發重新排序
+});
+
+function updateResults() {
+  results.innerHTML = '';
+  if (selectedTraits.length === 0) return;
+
+  const matches = [];
+
+  // ✅ 篩選符合至少一個 trait 的區域
+  for (const [zone, traits] of Object.entries(zones)) {
+    const found = selectedTraits.filter(t => traits.includes(t));
+    if (found.length > 0) {
+      matches.push({ zone, found });
+    }
+  }
+
+  // ✅ 按照匹配度（found.length）由高至低排序
+  matches.sort((a, b) => b.found.length - a.found.length);
+
+  // ✅ 輸出排序後的結果
+  for (const match of matches) {
+    const p = document.createElement('p');
+    p.textContent = `符合的地點【${match.zone}】(${match.found.join(', ')})`;
+    results.appendChild(p);
+  }
+}
+
+const coll = document.getElementsByClassName("collapsible");
+for (let i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function () {
+    this.classList.toggle("active");
+    const content = this.nextElementSibling;
+    content.style.display = content.style.display === "block" ? "none" : "block";
+  });
+}
+
+  </script>
+</body>
+</html>
