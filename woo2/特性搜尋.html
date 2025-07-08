@@ -9,14 +9,6 @@
       font-family: 'OtomanoKanji-Regular';
       src: url('../Font/OtomanoKanji-Regular.woff') format('woff');
     }
-    /*  @font-face {
-      font-family: 'SetoFont';
-      src: url('../Font/SetoFont.woff') format('woff');
-    }
-      @font-face {
-      font-family: 'uzura';
-      src: url('../Font/uzura.woff') format('woff');
-    }*/
        @font-face {
       font-family: '華康竹風體';
       src: url('../Font/華康竹風體.woff') format('woff');
@@ -44,7 +36,6 @@
       margin-bottom: 1em;
     }
     .collapsible {
-      /*font-weight: bold;*/
       background-color: #e2c4ad;
       color: #5f4945;
       border: none;
@@ -74,7 +65,6 @@
       font-family: "小賴字體", sans-serif;
       cursor: pointer;
     }
-    /* 色コードを変更 */
     .yellow { background-color: #e5c77a; }
     .red { background-color: #ebb2ac; }
     .green { background-color: #add2a3; }
@@ -243,7 +233,7 @@
 
   </div>
 
-  <input type="text" id="traitsInput" placeholder="選擇的特性會表示在這裡（用空格區分）">
+  <input type="text" id="traitsInput" placeholder="選擇的特性會顯示在這裡（用空格區分）">
   <button id="clearBtn">清除資料</button>
   <div id="results"></div>
 
@@ -291,7 +281,7 @@ buttons.forEach(btn => {
       }
     }
     inputField.value = selectedTraits.join(' ');
-    updateResults(); // ✅ 每次變更 trait 都會重新排序更新結果
+    updateResults(); 
   });
 });
 
@@ -311,7 +301,7 @@ inputField.addEventListener('input', () => {
       btn.classList.remove('selected');
     }
   });
-  updateResults(); // ✅ 輸入欄位變更時也會觸發重新排序
+  updateResults();
 });
 
 function updateResults() {
@@ -320,7 +310,6 @@ function updateResults() {
 
   const matches = [];
 
-  // ✅ 篩選符合至少一個 trait 的區域
   for (const [zone, traits] of Object.entries(zones)) {
     const found = selectedTraits.filter(t => traits.includes(t));
     if (found.length > 0) {
@@ -328,10 +317,8 @@ function updateResults() {
     }
   }
 
-  // ✅ 按照匹配度（found.length）由高至低排序
   matches.sort((a, b) => b.found.length - a.found.length);
 
-  // ✅ 輸出排序後的結果
   for (const match of matches) {
     const p = document.createElement('p');
     p.textContent = `符合的地點【${match.zone}】(${match.found.join(', ')})`;
