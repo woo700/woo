@@ -85,6 +85,11 @@
       box-shadow: 0 0 10px #c0b9b4;
       opacity: 0.7;
     }
+
+      .result-item {
+      margin-bottom: 5px;
+    }
+    
     #traitsInput {
       width: 100%;
       padding: 10px;
@@ -116,7 +121,7 @@
       font-size: 32px ;
       font-weight: bold;
       font-family: "SNsanafonJ30", sans-serif;
-       line-height: 0.9 ;
+       line-height: 1 ;
     }
     h2 {
   font-family: "YuseiMagic-Regular", sans-serif;
@@ -398,6 +403,7 @@ function updateResults() {
   // ✅ 輸出排序後的結果
   for (const match of matches) {
     const p = document.createElement('p');
+    p.cassList.add('result-item');
     p.textContent = `該当するのは【${match.zone}】(${match.found.join(', ')})`;
     results.appendChild(p);
   }
