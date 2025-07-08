@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>特性搜尋</title>
+  <style>
+    @font-face {
+  font-family: 'SetoFont';
+  src: url('../woo/Font/SetoFont.woff') format('woff');
+                }
+        @font-face {
+  font-family: 'YuseiMagic-Regular';
+  src: url('../Font/YuseiMagic-Regular.woff') format('woff');
+                }
+            @font-face {
+  font-family: 'takumi-syokeifont-B';
+  src: url('../Font/takumi-syokeifont-B.woff') format('woff');
+                }
+                @font-face {
+  font-family: 'uzura';
+  src: url('../Font/uzura.woff') format('woff');
+                }
+                @font-face {
+  font-family: 'SNsanafonJ30';
+  src: url('../Font/SNsanafonJ30.woff') format('woff');
+                }
+    
+    body {
+      font-family: "YuseiMagic-Regular", sans-serif;
+      color: #8a6b55;
+      font-size: 40px;
+      background: linear-gradient(to right, #f5eee5, #f5eee5);
+      padding: 20px;
+    }
+    #description {
+    font-family: "SetoFont", sans-serif;
+    font-size: 35px;
+    color: #8a6b55;
+    margin-bottom: 20px;
+    line-height: 1.2;
+    }
+    .section {
+      margin-bottom: 1em;
+    }
+    .collapsible {
+      /*font-weight: bold;*/
+      background-color: #e2c4ad;
+      color: #5f4945;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      width: 100%;
+      text-align: left;
+      font-size: 40px;
+      font-family: "SetoFont", sans-serif;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .content {
+      font-family: "SNsanafonJ30", sans-serif;
+      font-size: 35px;
+      display: none;
+      padding: 0 15px;
+      margin-top: 5px;
+    }
+    .btn {
+      margin: 4px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 35px;
+      font-family: "SetoFont", sans-serif;
+      cursor: pointer;
+    }
+    /* 色コードを変更 */
+    .yellow { background-color: #e5c77a; }
+    .red { background-color: #ebb2ac; }
+    .green { background-color: #add2a3; }
+    .blue { background-color: #9bc2e9; }
+    .purple { background-color: #c1a5d9; }
+
+    .selected {
+      box-shadow: 0 0 10px #c0b9b4;
+      opacity: 0.7;
+    }
+    #traitsInput {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 40px;
+      border-radius: 5px;
+      font-family: "SNsanafonJ30", sans-serif;
+      border: 1px solid #ccc;
+    }
+    #clearBtn {
+      background-color: #a5a2a7;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 40px;
+      font-family: "SetoFont", sans-serif;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #results {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #fff;
+      border-radius: 8px;
+      font-size: 35px ;
+      font-family: "SNsanafonJ30", sans-serif;
+       line-height: 1 ;
+    }
+    h2 {
+  font-family: "YuseiMagic-Regular", sans-serif;
+      color: #8a6b55;
+      font-size: 55px;
+    }
+    
+  </style>
+</head>
+<body>
+  <h2>まほやく育成スポット検索</h2>
+  <p id="description">特性の入力、または下記の選択肢からの選択により、交流大成功時にその特性を獲得できる育成スポットを検索できます。<br>特性は五つまで選択可能です</p>
+
+  <div class="section">
+
+    <button class="collapsible">◇レア1</button>
+    <div class="content">
+      <!-- #E5BE7A -->
+      <button class="btn yellow">神聖</button>
+      <button class="btn yellow">正義</button>
+      <button class="btn yellow">威厳</button>
+      <button class="btn yellow">勇敢</button>
+      <button class="btn yellow">不屈</button>
+
+      <!-- #E09D94 -->
+      <button class="btn red">勇気</button>
+      <button class="btn red">愛情</button>
+      <button class="btn red">勝利</button>
+      <button class="btn red">破天荒</button>
+      <button class="btn red">夢中</button>
+
+      <!-- #A4C69B -->
+      <button class="btn green">自然</button>
+      <button class="btn green">幸運</button>
+      <button class="btn green">再生</button>
+      <button class="btn green">真心</button>
+      <button class="btn green">団結</button><br>
+
+      <!-- #78A5D4 -->
+      <button class="btn blue">信頼</button>
+      <button class="btn blue">誠実</button>
+      <button class="btn blue">残酷</button>
+      <button class="btn blue">高潔</button>
+      <button class="btn blue">慎重</button>
+
+      <!-- #9E72D9 -->
+      <button class="btn purple">神秘</button>
+      <button class="btn purple">優雅</button>
+      <button class="btn purple">高貴</button>
+      <button class="btn purple">矜持</button>
+      <button class="btn purple">強者</button><br>
+    </div>
+
+    <button class="collapsible">◇レア2</button>
+    <div class="content">
+      <!-- #E5BE7A -->
+      <button class="btn yellow">信念</button>
+      <button class="btn yellow">祝福</button>
+      <button class="btn yellow">純粋</button>
+      <button class="btn yellow">貫禄</button>
+      <button class="btn yellow">指導力</button>
+      <button class="btn yellow">栄誉</button>
+      <button class="btn yellow">理想</button>
+
+      <!-- #E09D94 -->
+      <button class="btn red">希望</button>
+      <button class="btn red">情熱</button>
+      <button class="btn red">熱血</button>
+      <button class="btn red">絢爛</button>
+      <button class="btn red">審美眼</button>
+      <button class="btn red">独創</button>
+      <button class="btn red">豪奢</button><br>
+
+      <!-- #A4C69B -->
+      <button class="btn green">堅実</button>
+      <button class="btn green">古風</button>
+      <button class="btn green">楽観</button>
+      <button class="btn green">愛着</button>
+      <button class="btn green">親密</button>
+      <button class="btn green">朴訥</button>
+      <button class="btn green">柔和</button>
+
+      <!-- #78A5D4 -->
+      <button class="btn blue">知性</button>
+      <button class="btn blue">忠実</button>
+      <button class="btn blue">自由</button>
+      <button class="btn blue">感傷</button>
+      <button class="btn blue">質実</button>
+      <button class="btn blue">謙虚</button>
+      <button class="btn blue">几帳面</button><br>
+
+      <!-- #9E72D9 -->
+      <button class="btn purple">意地悪</button>
+      <button class="btn purple">芸術</button>
+      <button class="btn purple">奔放</button>
+      <button class="btn purple">強靭</button>
+      <button class="btn purple">執着</button>
+      <button class="btn purple">君臨</button>
+      <button class="btn purple">鮮烈</button>
+    </div>
+
+    <button class="collapsible">◇レア3</button>
+    <div class="content">
+      <!-- #E5BE7A -->
+      <button class="btn yellow">清潔</button>
+      <button class="btn yellow">平和</button>
+      <button class="btn yellow">公正</button>
+      <button class="btn yellow">克己</button>
+      <button class="btn yellow">先導</button>
+      <button class="btn yellow">素直</button>
+      <button class="btn yellow">邁進</button>
+
+      <!-- #E09D94 -->
+      <button class="btn red">派手</button>
+      <button class="btn red">閃き</button>
+      <button class="btn red">活力</button>
+      <button class="btn red">奇抜</button>
+      <button class="btn red">熱狂</button>
+      <button class="btn red">酔狂</button>
+      <button class="btn red">多才</button><br>
+
+      <!-- #A4C69B -->
+      <button class="btn green">我慢</button>
+      <button class="btn green">癒し</button>
+      <button class="btn green">安定</button>
+      <button class="btn green">共栄</button>
+      <button class="btn green">友好</button>
+      <button class="btn green">天然</button>
+      <button class="btn green">自適</button>
+
+      <!-- #78A5D4 -->
+      <button class="btn blue">繊細</button>
+      <button class="btn blue">優しさ</button>
+      <button class="btn blue">広大</button>
+      <button class="btn blue">浄化</button>
+      <button class="btn blue">物憂げ</button>
+      <button class="btn blue">同調</button>
+      <button class="btn blue">厚情</button><br>
+
+      <!-- #9E72D9 -->
+      <button class="btn purple">陽気</button>
+      <button class="btn purple">魅力</button>
+      <button class="btn purple">上品</button>
+      <button class="btn purple">自尊心</button>
+      <button class="btn purple">不敵</button>
+      <button class="btn purple">精悍</button>
+      <button class="btn purple">豪胆</button><br>
+    </div>
+
+    <button class="collapsible">◇レア4</button>
+    <div class="content">
+      <!-- #E5BE7A -->
+      <button class="btn yellow">真面目</button>
+      <button class="btn yellow">正直</button>
+      <button class="btn yellow">無垢</button>
+      <button class="btn yellow">健気</button>
+      <button class="btn yellow">忍耐</button>
+
+      <!-- #E09D94 -->
+      <button class="btn red">積極</button>
+      <button class="btn red">元気</button>
+      <button class="btn red">自信</button>
+      <button class="btn red">愉快</button>
+      <button class="btn red">気まま</button>
+
+
+      <!-- #A4C69B -->
+      <button class="btn green">安らぎ</button>
+      <button class="btn green">爽やか</button>
+      <button class="btn green">頑固</button>
+      <button class="btn green">素朴</button>
+      <button class="btn green">大らか</button><br>
+
+      <!-- #78A5D4 -->
+      <button class="btn blue">寂しさ</button>
+      <button class="btn blue">内気</button>
+      <button class="btn blue">冷静</button>
+      <button class="btn blue">閑寂</button>
+      <button class="btn blue">平穏</button>
+
+      <!-- #9E72D9 -->
+      <button class="btn purple">孤独</button>
+      <button class="btn purple">二面性</button>
+      <button class="btn purple">色気</button>
+      <button class="btn purple">獰猛</button>
+      <button class="btn purple">野生</button><br>
+    </div>
+
+  </div>
+
+  <input type="text" id="traitsInput" placeholder="選択した特性がここに表示されます（空白区切り）">
+  <button id="clearBtn">削除</button>
+  <div id="results"></div>
+
+  <script>
+    const buttons = document.querySelectorAll('.btn');
+    const inputField = document.getElementById('traitsInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const results = document.getElementById('results');
+    let selectedTraits = [];
+
+    const zones = {
+      "グランヴェル城": ["神聖", "自然", "矜持", "希望", "絢爛", "祝福", "知性", "芸術", "酔狂", "先導", "同調", "爽やか", "平穏", "孤独"],
+      "オズの爪痕": ["勇気", "不屈", "幸運", "信念", "堅実", "感傷", "鮮烈", "活力", "克己", "天然", "優しさ", "内気", "閑寂", "色気"],
+    "栄光の街": ["夢中", "威厳", "再生", "純粋", "自由", "謙虚", "強靭", "素直", "癒し", "友好", "魅力", "積極", "冷静", "愉快"],
+    "既知の遺跡": ["愛情", "真心", "高貴", "豪奢", "祝福", "指導力", "楽観", "派手", "同調", "陽気", "自尊心", "忍耐", "爽やか", "寂しさ"],
+    "夢の森": ["勇敢", "信頼", "神秘", "審美眼", "朴訥", "忠実", "意地悪", "多才", "清潔", "安定", "物憂げ", "自信", "無垢", "野生"],
+    "氷の森": ["夢中", "誠実", "高貴", "情熱", "信念", "奔放", "執着", "多才", "先導", "天然", "上品", "元気", "愉快", "寂しさ"],
+    "氷の街": ["勝利", "破天荒", "幸運", "理想", "愛着", "忠実", "芸術", "奇抜", "清潔", "我慢", "精悍", "大らか", "冷静", "二面性"],
+    "時の洞窟": ["威厳", "団結", "残酷", "審美眼", "栄誉", "楽観", "奔放", "閃き", "共栄", "厚情", "上品", "自信", "正直", "素朴"],
+    "死の湖": ["勇気", "信頼", "強者", "希望", "信念", "貫禄", "謙虚", "邁進", "癒し", "共栄", "魅力", "頑固", "無垢", "獰猛"],
+    "雨の街": ["破天荒", "残酷", "神秘", "情熱", "祝福", "朴訥", "感傷", "酔狂", "公正", "繊細", "自尊心", "忍耐", "爽やか", "孤独"],
+    "シャーウッドの森": ["不屈", "誠実", "優雅", "情熱", "貫禄", "柔和", "奔放", "奇抜", "平和", "広大", "精悍", "元気", "頑固", "閑寂"],
+    "ブランシェット城": ["勝利", "信頼", "残酷", "独創", "堅実", "意地悪", "強靭", "清潔", "天然", "広大", "浄化", "気まま", "真面目", "安らぎ"],
+    "嵐の谷": ["威厳", "自然", "強者", "古風", "親密", "自由", "君臨", "鮮烈", "活力", "熱狂", "優しさ", "素直", "元気", "色気", "獰猛"],
+    "未開の天分台": ["愛情", "正義", "真心", "熱血", "古風", "親密", "知性", "同調", "陽気", "不敵", "真面目", "安らぎ", "野生"],
+    "泡の街": ["勇気", "神聖", "慎重", "熱血", "堅実", "几帳面", "執着", "克己", "癒し", "繊細", "豪胆", "正直", "孤独", "閑寂"],
+    "豊かの街": ["再生", "慎重", "神秘", "熱血", "絢爛", "純粋", "鮮烈", "派手", "公正", "自適", "物憂げ", "内気", "色気", "健気"],
+    "ベネット酒場": ["正義", "幸運", "高潔", "豪奢", "忠実", "芸術", "強靭", "先導", "安定", "豪胆", "優しさ", "積極", "無垢", "平穏"],
+    "病の沼": ["勝利", "不屈", "自然", "理想", "古風", "愛着", "自由", "派手", "平和", "自適", "浄化", "冷静", "二面性", "健気"],
+    "ティコ湖": ["団結", "信頼", "優雅", "希望", "独創", "純粋", "指導力", "公正", "我慢", "友好", "精悍", "頑固", "内気", "素朴"],
+    "雲の街": ["愛情", "再生", "高潔", "栄誉", "楽観", "質実", "君臨", "閃き", "熱狂", "邁進", "魅力", "正直", "寂しさ", "二面性"],
+    "レイタ山脈": ["神聖", "誠実", "矜持", "柔和", "知性", "意地悪", "質実", "活力", "我慢", "厚情", "不敵", "積極", "真面目"],
+    };
+
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const trait = btn.textContent;
+    if (selectedTraits.includes(trait)) {
+      selectedTraits = selectedTraits.filter(t => t !== trait);
+      btn.classList.remove('selected');
+    } else {
+      if (selectedTraits.length < 5) {
+        selectedTraits.push(trait);
+        btn.classList.add('selected');
+      }
+    }
+    inputField.value = selectedTraits.join(' ');
+    updateResults(); // ✅ 每次變更 trait 都會重新排序更新結果
+  });
+});
+
+clearBtn.addEventListener('click', () => {
+  selectedTraits = [];
+  buttons.forEach(btn => btn.classList.remove('selected'));
+  inputField.value = '';
+  results.innerHTML = '';
+});
+
+inputField.addEventListener('input', () => {
+  selectedTraits = inputField.value.trim().split(/\s+/).filter(Boolean);
+  buttons.forEach(btn => {
+    if (selectedTraits.includes(btn.textContent)) {
+      btn.classList.add('selected');
+    } else {
+      btn.classList.remove('selected');
+    }
+  });
+  updateResults(); // ✅ 輸入欄位變更時也會觸發重新排序
+});
+
+function updateResults() {
+  results.innerHTML = '';
+  if (selectedTraits.length === 0) return;
+
+  const matches = [];
+
+  // ✅ 篩選符合至少一個 trait 的區域
+  for (const [zone, traits] of Object.entries(zones)) {
+    const found = selectedTraits.filter(t => traits.includes(t));
+    if (found.length > 0) {
+      matches.push({ zone, found });
+    }
+  }
+
+  // ✅ 按照匹配度（found.length）由高至低排序
+  matches.sort((a, b) => b.found.length - a.found.length);
+
+  // ✅ 輸出排序後的結果
+  for (const match of matches) {
+    const p = document.createElement('p');
+    p.textContent = `該当するのは【${match.zone}】(${match.found.join(', ')})`;
+    results.appendChild(p);
+  }
+}
+
+const coll = document.getElementsByClassName("collapsible");
+for (let i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function () {
+    this.classList.toggle("active");
+    const content = this.nextElementSibling;
+    content.style.display = content.style.display === "block" ? "none" : "block";
+  });
+}
+
+  </script>
+</body>
+</html>
