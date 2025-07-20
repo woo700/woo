@@ -104,7 +104,7 @@
         <!-- 衣服 -->
         <div class="group" data-group="衣服">
             <div class="group-title">衣服</div>
-            <button onclick="selectItem('衣服1','衣服')">1號(三星)</button>
+            <button onclick="selectItem('衣服1','衣服')">1號</button>
             <button onclick="selectItem('衣服2白','衣服')">2號(白衣)</button>
             <button onclick="selectItem('衣服2黑','衣服')">2號(黑衣)</button>
         </div>
@@ -143,12 +143,6 @@ let selected = {
     特效: []
 };
 
-function selectItem(id, group) {
-    // 腮紅必須先選擇衣服1(三星)
-    if(group === '腮紅' && selected.衣服 !== '衣服1') {
-        alert('請先選擇三星(衣服1號)才能使用腮紅');
-        return;
-    }
 
     // 切換按鈕樣式
     const groupDiv = document.querySelector(`.group[data-group="${group}"]`);
