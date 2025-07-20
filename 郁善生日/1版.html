@@ -7,7 +7,7 @@
 <style>
     body {
         margin: 0;
-        background: url('img/background.jpg') no-repeat center center;
+        background: url('image/background.jpg') no-repeat center center;
         background-size: cover;
         font-family: "Microsoft JhengHei", sans-serif;
         display: flex;
@@ -86,18 +86,18 @@
     <h1>妖怪繪卷</h1>
     <div class="canvas" id="canvas">
         <!-- 圖層順序：衣服 → 腮紅 → 表情 → 筆觸 → 狐狸面具 -->
-        <img class="layer" id="衣服1" src="img/clothes1.jpg">
-        <img class="layer" id="衣服2白" src="img/clothes2_white.jpg">
-        <img class="layer" id="衣服2黑" src="img/clothes2_black.jpg">
-        <img class="layer" id="圓圈腮紅" src="img/blush_circle.png">
-        <img class="layer" id="原點腮紅" src="img/blush_dot.png">
-        <img class="layer" id="線條腮紅" src="img/blush_line.png">
-        <img class="layer" id="張嘴" src="img/face_open.png">
-        <img class="layer" id="閉嘴" src="img/face_close.png">
-        <img class="layer" id="筆觸" src="img/brush.png">
-        <img class="layer" id="筆觸黑衣" src="img/brush_black.png">
-        <img class="layer" id="筆觸白衣" src="img/brush_white.png">
-        <img class="layer" id="狐狸面具" src="img/foxmask.png">
+        <image class="layer" id="衣服1" src="image/clothes1.jpg">
+        <image class="layer" id="衣服2白" src="image/clothes2_white.jpg">
+        <image class="layer" id="衣服2黑" src="image/clothes2_black.jpg">
+        <image class="layer" id="圓圈腮紅" src="image/blush_circle.png">
+        <image class="layer" id="原點腮紅" src="image/blush_dot.png">
+        <image class="layer" id="線條腮紅" src="image/blush_line.png">
+        <image class="layer" id="張嘴" src="image/face_open.png">
+        <image class="layer" id="閉嘴" src="image/face_close.png">
+        <image class="layer" id="筆觸" src="image/brush.png">
+        <image class="layer" id="筆觸黑衣" src="image/brush_black.png">
+        <image class="layer" id="筆觸白衣" src="image/brush_white.png">
+        <image class="layer" id="狐狸面具" src="image/foxmask.png">
     </div>
 
     <div class="controls">
@@ -200,15 +200,6 @@ function handleBrushCombination() {
         }
     }
 }
-
-// 飽和度切換
-function changeSaturation(mode) {
-    const canvas = document.getElementById('canvas');
-    if(mode === 'high') {
-        canvas.style.filter = 'saturate(2)';
-    } else {
-        canvas.style.filter = 'saturate(0.5)';
-    }
 }
 </script>
 </body>
