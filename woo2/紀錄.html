@@ -5,42 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>まほやく卡面資料管理</title>
     <style>
-        /* 字體設定保持不變 */
         @font-face { font-family: 'YuseiMagic-Regular'; src: url('../Font/YuseiMagic-Regular.woff') format('woff'); }
         @font-face { font-family: 'uzura'; src: url('../Font/uzura.woff') format('woff'); }
 
         :root {
             --main-brown: #8a6b55;
-            --light-brown: #c4b0a1; /* 角色描邊用的淺咖啡色 */
+            --light-brown: #c4b0a1;
             --bg-color: #f5eee5;
-            --gold-label: #e5c77a;
-            --silver-label: #a5a2a7;
+            --accent-tan: #e2c4ad;
         }
 
         body {
-            font-family: "YuseiMagic-Regular", sans-serif;
+            font-family: "YuseiMagic-Regular", "Microsoft JhengHei", sans-serif;
             color: var(--main-brown);
             background-color: var(--bg-color);
             padding: 20px;
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
-        /* 1. 按鈕效果優化：變深且不加框 */
-        .btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 12px;
-            color: white;
+        h2 { font-size: 32px; text-align: center; margin-bottom: 20px; }
+
+        /* 輸入區域樣式 - 恢復第一次的寬鬆感 */
+        .input-group {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"], select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
             font-size: 18px;
             font-family: "uzura", sans-serif;
-            cursor: pointer;
-            transition: filter 0.2s, transform 0.1s;
         }
-        .btn:hover { filter: brightness(0.9); }
+
+        #cardName { flex: 2; }
+        #characterSelect { flex: 1; }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0 10px;
+            padding-left: 10px;
+            border-left: 5px solid var(--accent-tan);
+        }
+
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        /* 按鈕樣式 - 點選後透明度降低 */
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 16px;
+            font-family: "uzura", sans-serif;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
         .btn.selected {
-            filter: brightness(0.7); /* 點選後變深 */
-            transform: translateY(2px);
+            opacity: 0.5; /* 點選後透明度降低 */
         }
 
         .yellow { background-color: #e5c77a; }
@@ -49,7 +88,43 @@
         .blue { background-color: #9bc2e9; }
         .purple { background-color: #c1a5d9; }
 
-        /* 2. 角色名字描邊樣式 */
+        #saveBtn {
+            width: 100%;
+            background-color: #8a6b55;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: "YuseiMagic-Regular", sans-serif;
+        }
+
+        /* 紀錄欄樣式 - 恢復橫向排列間距 */
+        #dataList { margin-top: 30px; }
+        
+        .record-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid var(--accent-tan);
+        }
+
+        .record-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card-title { font-weight: bold; font-size: 18px; }
+
+        /* 角色名稱描邊 */
         .char-outline {
             display: inline-block;
             padding: 2px 10px;
@@ -60,78 +135,38 @@
             background: transparent;
         }
 
-        /* 3. 金銀枠顯示差異 */
         .badge {
-            padding: 4px 12px;
-            border-radius: 8px;
-            font-size: 15px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 14px;
             color: white;
-            margin: 0 2px;
-            display: inline-block;
-        }
-        .badge-gold { border: 2px solid #d4af37; position: relative; } /* 金框加一圈細邊 */
-        .badge-silver { opacity: 0.9; }
-
-        .type-label {
-            font-size: 12px;
-            font-weight: bold;
-            margin-right: 5px;
-            color: #8a6b55;
         }
 
-        /* 4. 資料清單與修改按鈕 */
-        .record-card {
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between; /* 讓內容與按鈕分開 */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .record-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            flex: 1;
+        /* 金框專屬邊框，銀框不加 */
+        .gold-border {
+            border: 2px solid #d4af37;
         }
 
         .edit-btn {
             background-color: #a5a2a7;
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 6px 15px;
             border-radius: 8px;
             cursor: pointer;
             font-family: "uzura", sans-serif;
-            margin-left: 10px;
-        }
-        .edit-btn:hover { background-color: #8a6b55; }
-
-        /* 輸入框美化 */
-        .input-area {
-            background: #fff;
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-        }
-        input, select {
-            padding: 10px;
-            border: 1px solid var(--light-brown);
-            border-radius: 8px;
-            font-family: "uzura", sans-serif;
+            font-size: 14px;
+            white-space: nowrap;
         }
     </style>
 </head>
 <body>
 
-    <div class="input-area">
-        <h2>卡面資料錄入</h2>
-        <div style="margin-bottom: 20px;">
-            <input type="text" id="cardName" placeholder="卡面名稱" style="width: 200px;">
+    <h2>まほやく卡面資料錄入</h2>
+
+    <div class="input-group">
+        <div class="input-row">
+            <input type="text" id="cardName" placeholder="請輸入卡面名稱">
             <select id="characterSelect">
                 <option value="">選擇角色</option>
                 <option>オズ</option><option>アーサー</option><option>カイン</option><option>リケ</option>
@@ -142,13 +177,13 @@
             </select>
         </div>
 
-        <p>【金枠】(2項)</p>
-        <div id="goldContainer" class="btn-container" style="margin-bottom: 15px;"></div>
-        
-        <p>【銀枠】(3項)</p>
+        <div class="section-title">金枠 (最多2個)</div>
+        <div id="goldContainer" class="btn-container"></div>
+
+        <div class="section-title">銀枠 (最多3個)</div>
         <div id="silverContainer" class="btn-container"></div>
 
-        <button id="saveBtn" style="width: 100%; margin-top: 20px; padding: 15px; background: #8a6b55; color: white; border: none; border-radius: 10px; font-size: 20px; cursor: pointer;">儲存卡面</button>
+        <button id="saveBtn">儲存資料</button>
     </div>
 
     <div id="dataList"></div>
@@ -164,8 +199,8 @@
             ],
             silver: [
                 { id: "s01", name: "信念", color: "yellow" }, { id: "s02", name: "祝福", color: "yellow" }, { id: "s03", name: "純粋", color: "yellow" }, { id: "s04", name: "貫禄", color: "yellow" }, { id: "s05", name: "指導力", color: "yellow" }, { id: "s06", name: "栄誉", color: "yellow" }, { id: "s07", name: "理想", color: "yellow" },
-                { id: "s08", name: "希望", color: "red" }, { id: "s09", name: "情熱", color: "red" }, { id: "s10", name: "熱血", color: "red" }, { id: "s11", name: "絢爛", color: "red" }, { id: "s12", name: "審美眼", color: "red" }, { id: "s13", name: "獨創", color: "red" }, { id: "s14", name: "豪奢", color: "red" },
-                { id: "s15", name: "堅實", color: "green" }, { id: "s16", name: "古風", color: "green" }, { id: "s17", name: "樂觀", color: "green" }, { id: "s18", name: "愛著", color: "green" }, { id: "s19", name: "親密", color: "green" }, { id: "s20", name: "朴訥", color: "green" }, { id: "s21", name: "柔和", color: "green" },
+                { id: "s08", name: "希望", color: "red" }, { id: "s09", name: "情熱", color: "red" }, { id: "s10", name: "熱血", color: "red" }, { id: "s11", name: "絢爛", color: "red" }, { id: "s12", name: "審美眼", color: "red" }, { id: "s13", name: "独創", color: "red" }, { id: "s14", name: "豪奢", color: "red" },
+                { id: "s15", name: "堅実", color: "green" }, { id: "s16", name: "古風", color: "green" }, { id: "s17", name: "樂觀", color: "green" }, { id: "s18", name: "愛著", color: "green" }, { id: "s19", name: "親密", color: "green" }, { id: "s20", name: "朴訥", color: "green" }, { id: "s21", name: "柔和", color: "green" },
                 { id: "s22", name: "知性", color: "blue" }, { id: "s23", name: "忠實", color: "blue" }, { id: "s24", name: "自由", color: "blue" }, { id: "s25", name: "感傷", color: "blue" }, { id: "s26", name: "實質", color: "blue" }, { id: "s27", name: "謙虛", color: "blue" }, { id: "s28", name: "几帳面", color: "blue" },
                 { id: "s29", name: "意地惡", color: "purple" }, { id: "s30", name: "藝術", color: "purple" }, { id: "s31", name: "奔放", color: "purple" }, { id: "s32", name: "強韌", color: "purple" }, { id: "s33", name: "執著", color: "purple" }, { id: "s34", name: "君臨", color: "purple" }, { id: "s35", name: "鮮烈", color: "purple" }
             ]
@@ -174,13 +209,13 @@
         let selectedGold = [];
         let selectedSilver = [];
         let allRecords = JSON.parse(localStorage.getItem('mahoyaku_cards')) || [];
-        let editIndex = -1; // 追蹤目前是否在修改資料
+        let currentEditIndex = -1;
 
         function init() {
-            const gc = document.getElementById('goldContainer');
-            const sc = document.getElementById('silverContainer');
-            traitsData.gold.forEach(t => gc.appendChild(createBtn(t, 'gold')));
-            traitsData.silver.forEach(t => sc.appendChild(createBtn(t, 'silver')));
+            const gContainer = document.getElementById('goldContainer');
+            const sContainer = document.getElementById('silverContainer');
+            traitsData.gold.forEach(t => gContainer.appendChild(createBtn(t, 'gold')));
+            traitsData.silver.forEach(t => sContainer.appendChild(createBtn(t, 'silver')));
             renderAll();
         }
 
@@ -192,7 +227,7 @@
             btn.onclick = () => {
                 let list = type === 'gold' ? selectedGold : selectedSilver;
                 let max = type === 'gold' ? 2 : 3;
-                const idx = list.findIndex(i => i.id === trait.id);
+                const idx = list.findIndex(item => item.id === trait.id);
                 if (idx > -1) {
                     list.splice(idx, 1);
                     btn.classList.remove('selected');
@@ -207,30 +242,26 @@
         document.getElementById('saveBtn').onclick = () => {
             const name = document.getElementById('cardName').value;
             const char = document.getElementById('characterSelect').value;
-            if (!name || !char) return alert("請輸入完整資料");
+            if (!name || !char) return alert("請填寫卡面名稱並選擇角色");
 
-            const data = { 
+            const record = { 
                 name, char, 
                 gold: [...selectedGold], 
                 silver: [...selectedSilver].sort((a,b) => a.id.localeCompare(b.id)) 
             };
 
-            if (editIndex > -1) {
-                allRecords[editIndex] = data;
-                editIndex = -1;
-                document.getElementById('saveBtn').textContent = "儲存卡面";
+            if (currentEditIndex > -1) {
+                allRecords[currentEditIndex] = record;
+                currentEditIndex = -1;
+                document.getElementById('saveBtn').textContent = "儲存資料";
             } else {
-                allRecords.unshift(data);
+                allRecords.unshift(record);
             }
 
-            saveAndRender();
-            resetForm();
-        };
-
-        function saveAndRender() {
             localStorage.setItem('mahoyaku_cards', JSON.stringify(allRecords));
             renderAll();
-        }
+            resetForm();
+        };
 
         function renderAll() {
             const list = document.getElementById('dataList');
@@ -239,13 +270,11 @@
                 const card = document.createElement('div');
                 card.className = 'record-card';
                 card.innerHTML = `
-                    <div class="record-content">
-                        <span style="font-weight:bold;">${rec.name}</span>
+                    <div class="record-main">
+                        <span class="card-title">${rec.name}</span>
                         <span class="char-outline">${rec.char}</span>
-                        <span class="type-label">[金]</span>
-                        ${rec.gold.map(t => `<span class="badge badge-gold ${t.color}">${t.name}</span>`).join('')}
-                        <span class="type-label">[銀]</span>
-                        ${rec.silver.map(t => `<span class="badge badge-silver ${t.color}">${t.name}</span>`).join('')}
+                        ${rec.gold.map(t => `<span class="badge ${t.color} gold-border">${t.name}</span>`).join('')}
+                        ${rec.silver.map(t => `<span class="badge ${t.color}">${t.name}</span>`).join('')}
                     </div>
                     <button class="edit-btn" onclick="editRecord(${index})">修改</button>
                 `;
@@ -255,20 +284,20 @@
 
         window.editRecord = (index) => {
             const rec = allRecords[index];
-            editIndex = index;
+            currentEditIndex = index;
             document.getElementById('cardName').value = rec.name;
             document.getElementById('characterSelect').value = rec.char;
             
-            // 重置按鈕狀態並回填
             selectedGold = [...rec.gold];
             selectedSilver = [...rec.silver];
             document.querySelectorAll('.btn').forEach(b => b.classList.remove('selected'));
             [...selectedGold, ...selectedSilver].forEach(t => {
-                document.getElementById(`btn-${t.id}`).classList.add('selected');
+                const target = document.getElementById(`btn-${t.id}`);
+                if (target) target.classList.add('selected');
             });
 
-            document.getElementById('saveBtn').textContent = "更新資料";
-            window.scrollTo(0, 0);
+            document.getElementById('saveBtn').textContent = "更新卡面";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         function resetForm() {
