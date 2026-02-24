@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>まほやく卡面資料儲存</title>
+    <style>
+        /* 保持原有的字體設定 */
+        @font-face { font-family: 'YuseiMagic-Regular'; src: url('../Font/YuseiMagic-Regular.woff') format('woff'); }
+        @font-face { font-family: 'takumi-syokeifont-B'; src: url('../Font/takumi-syokeifont-B.woff') format('woff'); }
+        @font-face { font-family: 'uzura'; src: url('../Font/uzura.woff') format('woff'); }
+        @font-face { font-family: 'SNsanafonJ30'; src: url('../Font/SNsanafonJ30.woff') format('woff'); }
+
+        :root {
+            --main-brown: #8a6b55;
+            --bg-color: #f5eee5;
+            --accent-tan: #e2c4ad;
+            --gold-bg: #e5c77a;
+            --silver-bg: #cbd5e0; /* 銀框背景色 */
+        }
+
+        body {
+            font-family: "YuseiMagic-Regular", "Microsoft JhengHei", sans-serif;
+            color: var(--main-brown);
+            background-color: var(--bg-color);
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h2 { font-size: 32px; text-align: center; margin-bottom: 20px; }
+
+        /* 輸入區域樣式 */
+        .input-group {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"], select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 18px;
+            font-family: "uzura", sans-serif;
+        }
+
+        #cardName { flex: 2; }
+        #characterSelect { flex: 1; }
+
+        /* 按鈕樣式 */
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0 10px;
+            padding-left: 10px;
+            border-left: 5px solid var(--accent-tan);
+        }
+
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 16px;
+            font-family: "uzura", sans-serif;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn:active { transform: scale(0.95); }
+        .yellow { background-color: #e5c77a; }
+        .red { background-color: #ebb2ac; }
+        .green { background-color: #add2a3; }
+        .blue { background-color: #9bc2e9; }
+        .purple { background-color: #c1a5d9; }
+
+        .btn.selected {
+            box-shadow: 0 0 0 3px var(--main-brown);
+            font-weight: bold;
+        }
+
+        .btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        #saveBtn {
+            width: 100%;
+            background-color: #8a6b55;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* 顯示清單樣式 */
+        #dataList { margin-top: 30px; }
+        
+        .record-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-bottom: 3px solid var(--accent-tan);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: white;
+        }
+
+        .char-badge { background-color: #8a6b55; border-radius: 5px; }
+        .card-title { font-weight: bold; font-size: 18px; margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+    <h2>まほやく卡面資料錄入</h2>
+
+    <div class="input-group">
+        <div class="input-row">
+            <input type="text" id="cardName" placeholder="請輸入卡面名稱">
+            <select id="characterSelect">
+                <option value="">選擇角色</option>
+                <option>オズ</option><option>アーサー</option><option>カイン</option>
+                <option>リケ</option><option>スノウ</option><option>ホワイト</option>
+                <option>ミスラ</option><option>オーエン</option><option>ブラッドリー</option>
+                <option>ファウスト</option><option>シノ</option><option>ヒースクリフ</option>
+                <option>ネロ</option><option>シャイロック</option><option>ムル</option>
+                <option>クロエ</option><option>ラスティカ</option><option>フィガロ</option>
+                <option>ルチル</option><option>レノックス</option><option>ミチル</option>
+            </select>
+        </div>
+
+        <div class="section-title">金枠 (最多2個)</div>
+        <div id="goldContainer" class="btn-container">
+            </div>
+
+        <div class="section-title">銀枠 (最多3個)</div>
+        <div id="silverContainer" class="btn-container">
+            </div>
+
+        <button id="saveBtn">儲存資料</button>
+    </div>
+
+    <div id="dataList">
+        </div>
+
+    <script>
+        // 特性資料庫與隱形編號 (ID)
+        const traitsData = {
+            gold: [
+                { id: "g01", name: "神聖", color: "yellow" }, { id: "g02", name: "正義", color: "yellow" }, { id: "g03", name: "威嚴", color: "yellow" }, { id: "g04", name: "勇敢", color: "yellow" }, { id: "g05", name: "不屈", color: "yellow" },
+                { id: "g06", name: "勇氣", color: "red" }, { id: "g07", name: "愛情", color: "red" }, { id: "g08", name: "勝利", color: "red" }, { id: "g09", name: "破天荒", color: "red" }, { id: "g10", name: "夢中", color: "red" },
+                { id: "g11", name: "自然", color: "green" }, { id: "g12", name: "幸運", color: "green" }, { id: "g13", name: "再生", color: "green" }, { id: "g14", name: "真心", color: "green" }, { id: "g15", name: "團結", color: "green" },
+                { id: "g16", name: "信頼", color: "blue" }, { id: "g17", name: "誠実", color: "blue" }, { id: "g18", name: "残酷", color: "blue" }, { id: "g19", name: "高潔", color: "blue" }, { id: "g20", name: "慎重", color: "blue" },
+                { id: "g21", name: "神秘", color: "purple" }, { id: "g22", name: "優雅", color: "purple" }, { id: "g23", name: "高貴", color: "purple" }, { id: "g24", name: "矜持", color: "purple" }, { id: "g25", name: "強者", color: "purple" }
+            ],
+            silver: [
+                { id: "s01", name: "信念", color: "yellow" }, { id: "s02", name: "祝福", color: "yellow" }, { id: "s03", name: "純粋", color: "yellow" }, { id: "s04", name: "貫禄", color: "yellow" }, { id: "s05", name: "指導力", color: "yellow" }, { id: "s06", name: "栄誉", color: "yellow" }, { id: "s07", name: "理想", color: "yellow" },
+                { id: "s08", name: "希望", color: "red" }, { id: "s09", name: "情熱", color: "red" }, { id: "s10", name: "熱血", color: "red" }, { id: "s11", name: "絢爛", color: "red" }, { id: "s12", name: "審美眼", color: "red" }, { id: "s13", name: "独創", color: "red" }, { id: "s14", name: "豪奢", color: "red" },
+                { id: "s15", name: "堅実", color: "green" }, { id: "s16", name: "古風", color: "green" }, { id: "s17", name: "楽観", color: "green" }, { id: "s18", name: "愛着", color: "green" }, { id: "s19", name: "親密", color: "green" }, { id: "s20", name: "朴訥", color: "green" }, { id: "s21", name: "柔和", color: "green" },
+                { id: "s22", name: "知性", color: "blue" }, { id: "s23", name: "忠実", color: "blue" }, { id: "s24", name: "自由", color: "blue" }, { id: "s25", name: "感傷", color: "blue" }, { id: "s26", name: "実質", color: "blue" }, { id: "s27", name: "謙虚", color: "blue" }, { id: "s28", name: "几帳面", color: "blue" },
+                { id: "s29", name: "意地悪", color: "purple" }, { id: "s30", name: "芸術", color: "purple" }, { id: "s31", name: "奔放", color: "purple" }, { id: "s32", name: "強靭", color: "purple" }, { id: "s33", name: "執着", color: "purple" }, { id: "s34", name: "君臨", color: "purple" }, { id: "s35", name: "鮮烈", color: "purple" }
+            ]
+        };
+
+        let selectedGold = [];
+        let selectedSilver = [];
+
+        // 初始化按鈕
+        function initButtons() {
+            const gContainer = document.getElementById('goldContainer');
+            const sContainer = document.getElementById('silverContainer');
+
+            traitsData.gold.forEach(t => {
+                const btn = createBtn(t, 'gold');
+                gContainer.appendChild(btn);
+            });
+
+            traitsData.silver.forEach(t => {
+                const btn = createBtn(t, 'silver');
+                sContainer.appendChild(btn);
+            });
+        }
+
+        function createBtn(trait, type) {
+            const btn = document.createElement('button');
+            btn.className = `btn ${trait.color}`;
+            btn.textContent = trait.name;
+            btn.dataset.id = trait.id;
+            
+            btn.addEventListener('click', () => {
+                if (type === 'gold') {
+                    toggleSelect(btn, trait, selectedGold, 2);
+                } else {
+                    toggleSelect(btn, trait, selectedSilver, 3);
+                }
+            });
+            return btn;
+        }
+
+        function toggleSelect(btn, trait, list, max) {
+            const index = list.findIndex(item => item.id === trait.id);
+            if (index > -1) {
+                list.splice(index, 1);
+                btn.classList.remove('selected');
+            } else {
+                if (list.length < max) {
+                    list.push(trait);
+                    btn.classList.add('selected');
+                } else {
+                    alert(`最多只能選擇 ${max} 個！`);
+                }
+            }
+        }
+
+        // 儲存功能
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const name = document.getElementById('cardName').value;
+            const char = document.getElementById('characterSelect').value;
+
+            if (!name || !char) {
+                alert("請填寫卡面名稱並選擇角色");
+                return;
+            }
+
+            // 建立紀錄物件 (包含 ID 供未來計算使用)
+            const record = {
+                name,
+                char,
+                gold: [...selectedGold],
+                // 銀框排序：先按顏色順序（同原陣列順序），確保顯示美觀
+                silver: [...selectedSilver].sort((a, b) => {
+                    const colorOrder = { yellow: 1, red: 2, green: 3, blue: 4, purple: 5 };
+                    return colorOrder[a.color] - colorOrder[b.color];
+                })
+            };
+
+            renderRecord(record);
+            resetForm();
+        });
+
+        function renderRecord(record) {
+            const list = document.getElementById('dataList');
+            const div = document.createElement('div');
+            div.className = 'record-card';
+
+            let goldHtml = record.gold.map(t => `<span class="badge ${t.color}">${t.name}</span>`).join('');
+            let silverHtml = record.silver.map(t => `<span class="badge ${t.color}">${t.name}</span>`).join('');
+
+            div.innerHTML = `
+                <span class="card-title">${record.name}</span>
+                <span class="badge char-badge">${record.char}</span>
+                ${goldHtml}
+                ${silverHtml}
+            `;
+
+            // 最新的顯示在最上面
+            list.insertBefore(div, list.firstChild);
+        }
+
+        function resetForm() {
+            document.getElementById('cardName').value = '';
+            document.getElementById('characterSelect').selectedIndex = 0;
+            selectedGold = [];
+            selectedSilver = [];
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('selected'));
+        }
+
+        initButtons();
+    </script>
+</body>
+</html>
