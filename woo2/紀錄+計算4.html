@@ -169,18 +169,19 @@ function init() {
     const selects = [document.getElementById('characterSelect'), document.getElementById('temp_characterSelect')];
     selects.forEach(s => s.innerHTML = '<option value="">角色</option>' + characters.map(c => `<option>${c}</option>`).join(''));
 
-    renderTraitBtns('goldContainer', 'gold', selectedGold);
-    renderTraitBtns('silverContainer', 'silver', selectedSilver);
-    renderTraitBtns('temp_goldContainer', 'gold', tempGold);
-    renderTraitBtns('temp_silverContainer', 'silver', tempSilver);
+    // 分別生成兩組頁面的按鈕
+    renderTraitBtns('goldContainer', 'gold', 'selectedGold');
+    renderTraitBtns('silverContainer', 'silver', 'selectedSilver');
+    renderTraitBtns('temp_goldContainer', 'gold', 'tempGold');
+    renderTraitBtns('temp_silverContainer', 'silver', 'tempSilver');
 
     document.getElementById('temp_cardName').addEventListener('input', function(e) {
         const val = e.target.value.trim();
         const found = allRecords.find(r => r.name === val);
         if (found) {
             document.getElementById('temp_characterSelect').value = found.char;
-            tempGold.splice(0, tempGold.length, ...found.gold);
-            tempSilver.splice(0, tempSilver.length, ...found.silver);
+            tempGold = [...found.gold];
+            tempSilver = [...found.silver];
             updateBtnStates('temp_goldContainer', tempGold);
             updateBtnStates('temp_silverContainer', tempSilver);
         }
@@ -188,7 +189,8 @@ function init() {
     renderAll();
 }
 
-function renderTraitBtns(containerId, type, list) {
+// 修改按鈕生成函數，改用字串指向全域變數
+function renderTraitBtns(containerId, type, listName) {
     const container = document.getElementById(containerId);
     traitsData[type].forEach(t => {
         const btn = document.createElement('button');
@@ -196,9 +198,18 @@ function renderTraitBtns(containerId, type, list) {
         btn.textContent = t.name;
         btn.onclick = () => {
             const max = (type === 'gold' ? 2 : 3);
-            const idx = list.findIndex(i => i.id === t.id);
-            if (idx > -1) { list.splice(idx, 1); btn.classList.remove('selected'); }
-            else if (list.length < max) { list.push(t); btn.classList.add('selected'); }
+            let currentList = (listName === 'selectedGold') ? selectedGold : 
+                              (listName === 'selectedSilver') ? selectedSilver : 
+                              (listName === 'tempGold') ? tempGold : tempSilver;
+
+            const idx = currentList.findIndex(i => i.id === t.id);
+            if (idx > -1) { 
+                currentList.splice(idx, 1); 
+                btn.classList.remove('selected'); 
+            } else if (currentList.length < max) { 
+                currentList.push(t); 
+                btn.classList.add('selected'); 
+            }
         };
         container.appendChild(btn);
     });
@@ -226,9 +237,11 @@ document.getElementById('saveBtn').onclick = () => {
     const name = document.getElementById('cardName').value.trim();
     const char = document.getElementById('characterSelect').value;
     if (!name || !char) return alert("請輸入名稱與角色");
+    
     const record = { name, char, gold: [...selectedGold], silver: [...selectedSilver] };
     if (currentEditIndex > -1) { allRecords[currentEditIndex] = record; currentEditIndex = -1; }
     else { allRecords.unshift(record); }
+    
     localStorage.setItem('mahoyaku_cards', JSON.stringify(allRecords));
     renderAll();
     resetForm();
@@ -265,19 +278,21 @@ window.editRecord = (idx) => {
     currentEditIndex = idx;
     document.getElementById('cardName').value = rec.name;
     document.getElementById('characterSelect').value = rec.char;
-    selectedGold.splice(0, selectedGold.length, ...rec.gold);
-    selectedSilver.splice(0, selectedSilver.length, ...rec.silver);
+    selectedGold = [...rec.gold];
+    selectedSilver = [...rec.silver];
     updateBtnStates('goldContainer', selectedGold);
     updateBtnStates('silverContainer', selectedSilver);
     document.getElementById('saveBtn').textContent = "更新資料";
 };
 
+// 徹底修正重置邏輯
 function resetForm() {
     document.getElementById('cardName').value = '';
     document.getElementById('characterSelect').selectedIndex = 0;
-    selectedGold.length = 0; selectedSilver.length = 0;
-    updateBtnStates('goldContainer', []);
-    updateBtnStates('silverContainer', []);
+    selectedGold = []; 
+    selectedSilver = [];
+    // 同步清除畫面上的選取狀態
+    document.querySelectorAll('#recordPage .btn').forEach(btn => btn.classList.remove('selected'));
     document.getElementById('saveBtn').textContent = "儲存資料";
 }
 
@@ -314,7 +329,7 @@ document.getElementById('runCalc').onclick = () => {
 
     if (pool.length < (hasTempTraits ? 4 : 5)) return alert("紀錄不足！");
     pool.sort((a, b) => b.potential - a.potential);
-    const elitePool = pool.slice(0, 28); // 擴大精英池至 28 張
+    const elitePool = pool.slice(0, 28); 
     let results = [];
     const n = elitePool.length;
 
@@ -347,7 +362,6 @@ document.getElementById('runCalc').onclick = () => {
     results.sort((a, b) => b.score - a.score);
     const container = document.getElementById('calcResults');
     container.innerHTML = "";
-    // 嚴格僅顯示前 3 名
     for (let i = 0; i < Math.min(results.length, 3); i++) {
         const res = results[i];
         const groupDiv = document.createElement('div');
@@ -358,6 +372,7 @@ document.getElementById('runCalc').onclick = () => {
         container.appendChild(groupDiv);
     }
 };
+
 init();
 </script>
 </body>
