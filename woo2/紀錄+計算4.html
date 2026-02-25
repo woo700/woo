@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>まほやく最佳排組計算</title>
+    <style>
+        @font-face { font-family: 'YuseiMagic-Regular'; src: url('../Font/YuseiMagic-Regular.woff') format('woff'); }
+        @font-face { font-family: 'uzura'; src: url('../Font/uzura.woff') format('woff'); }
+
+        :root {
+            --main-brown: #8a6b55;
+            --light-brown: #c4b0a1;
+            --bg-color: #f5eee5;
+            --accent-tan: #e2c4ad;
+            --delete-red: #ebb2ac;
+        }
+
+        body {
+            font-family: "YuseiMagic-Regular", sans-serif;
+            color: var(--main-brown);
+            background-color: var(--bg-color);
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .mode-switch { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
+        .mode-btn {
+            padding: 10px 30px; border: 2px solid var(--main-brown); border-radius: 25px;
+            background: white; color: var(--main-brown); cursor: pointer; font-size: 18px;
+            font-family: "YuseiMagic-Regular", sans-serif;
+        }
+        .mode-btn.active { background: var(--main-brown); color: white; }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .input-group {
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px;
+        }
+
+        .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        input[type="text"], select {
+            padding: 10px; border-radius: 8px; border: 1px solid #ccc;
+            font-size: 18px; font-family: "uzura", sans-serif;
+        }
+        #cardName, #temp_cardName { flex: 2; }
+        #characterSelect, #temp_characterSelect { flex: 1; }
+
+        .section-title {
+            font-size: 18px; font-weight: bold; margin: 15px 0 10px;
+            padding-left: 10px; border-left: 5px solid var(--accent-tan);
+        }
+
+        .btn-container { display: flex; flex-wrap: wrap; gap: 6px; }
+        .btn {
+            padding: 5px 12px; border: none; border-radius: 20px;
+            color: white; font-size: 15px; font-family: "uzura", sans-serif;
+            cursor: pointer; transition: opacity 0.2s;
+        }
+        .btn.selected { opacity: 0.75; }
+
+        .yellow { background-color: #e5c77a; }
+        .red { background-color: #ebb2ac; }
+        .green { background-color: #add2a3; }
+        .blue { background-color: #9bc2e9; }
+        .purple { background-color: #c1a5d9; }
+
+        .action-btn {
+            width: 100%; padding: 12px; margin-top: 15px; border: none;
+            border-radius: 10px; font-size: 20px; cursor: pointer;
+            font-family: "YuseiMagic-Regular", sans-serif;
+            background-color: var(--main-brown); color: white;
+        }
+
+        .record-card {
+            background: white; padding: 12px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; align-items: center;
+            justify-content: space-between; border-bottom: 3px solid var(--accent-tan);
+        }
+        .record-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
+        .record-actions { display: flex; gap: 8px; margin-left: 10px; }
+        
+        .card-title { font-weight: bold; font-size: 16px; }
+        .char-outline { padding: 2px 8px; border: 1.5px solid var(--light-brown); border-radius: 12px; font-size: 14px; }
+
+        .badge { padding: 3px 8px; border-radius: 6px; font-size: 13px; color: white; }
+        .gold-border { border: 2px solid #d4af37; }
+        .silver-border { border: 2px solid #a5a2a7; }
+        .divider { color: var(--light-brown); font-weight: bold; margin: 0 5px; }
+
+        .result-group { margin-top: 30px; }
+        .group-header { 
+            font-size: 18px; font-weight: bold; margin: 20px 0 10px; 
+            padding: 8px 15px; background: var(--accent-tan); border-radius: 5px;
+        }
+
+        .edit-btn { background: #a5a2a7; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .del-btn { background: var(--delete-red); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="mode-switch">
+        <button id="toRecord" class="mode-btn active">紀錄模式</button>
+        <button id="toCalc" class="mode-btn">計算模式</button>
+    </div>
+
+    <div id="recordPage" class="page active">
+        <div class="input-group">
+            <div class="input-row">
+                <input type="text" id="cardName" placeholder="卡面名稱">
+                <select id="characterSelect"></select>
+            </div>
+            <div class="section-title">金枠 (最多2)</div>
+            <div id="goldContainer" class="btn-container"></div>
+            <div class="section-title">銀枠 (最多3)</div>
+            <div id="silverContainer" class="btn-container"></div>
+            <button id="saveBtn" class="action-btn">儲存資料</button>
+        </div>
+        <div class="section-title">最近 10 筆紀錄</div>
+        <div id="dataList"></div>
+    </div>
+
+    <div id="calcPage" class="page">
+        <div class="input-group">
+            <div class="section-title">暫時紀錄欄</div>
+            <div class="input-row">
+                <input type="text" id="temp_cardName" placeholder="輸入名稱可自動抓取紀錄">
+                <select id="temp_characterSelect"></select>
+            </div>
+            <div class="section-title">金枠 (最多2)</div>
+            <div id="temp_goldContainer" class="btn-container"></div>
+            <div class="section-title">銀枠 (最多3)</div>
+            <div id="temp_silverContainer" class="btn-container"></div>
+            <button id="runCalc" class="action-btn" style="background-color: #6b8a55;">開始計算前三名排組</button>
+        </div>
+        <div id="calcResults"></div>
+    </div>
+
+<script>
+const traitsData = {
+    gold: [
+        { id: "g01", name: "神聖", color: "yellow" }, { id: "g02", name: "正義", color: "yellow" }, { id: "g03", name: "威嚴", color: "yellow" }, { id: "g04", name: "勇敢", color: "yellow" }, { id: "g05", name: "不屈", color: "yellow" },
+        { id: "g06", name: "勇氣", color: "red" }, { id: "g07", name: "愛情", color: "red" }, { id: "g08", name: "勝利", color: "red" }, { id: "g09", name: "破天荒", color: "red" }, { id: "g10", name: "夢中", color: "red" },
+        { id: "g11", name: "自然", color: "green" }, { id: "g12", name: "幸運", color: "green" }, { id: "g13", name: "再生", color: "green" }, { id: "g14", name: "真心", color: "green" }, { id: "g15", name: "團結", color: "green" },
+        { id: "g16", name: "信頼", color: "blue" }, { id: "g17", name: "誠実", color: "blue" }, { id: "g18", name: "残酷", color: "blue" }, { id: "g19", name: "高潔", color: "blue" }, { id: "g20", name: "慎重", color: "blue" },
+        { id: "g21", name: "神秘", color: "purple" }, { id: "g22", name: "優雅", color: "purple" }, { id: "g23", name: "高貴", color: "purple" }, { id: "g24", name: "矜持", color: "purple" }, { id: "g25", name: "強者", color: "purple" }
+    ],
+    silver: [
+        { id: "s01", name: "信念", color: "yellow" }, { id: "s02", name: "祝福", color: "yellow" }, { id: "s03", name: "純粋", color: "yellow" }, { id: "s04", name: "貫禄", color: "yellow" }, { id: "s05", name: "指導力", color: "yellow" }, { id: "s06", name: "栄誉", color: "yellow" }, { id: "s07", name: "理想", color: "yellow" },
+        { id: "s08", name: "希望", color: "red" }, { id: "s09", name: "情熱", color: "red" }, { id: "s10", name: "熱血", color: "red" }, { id: "s11", name: "絢爛", color: "red" }, { id: "s12", name: "審美眼", color: "red" }, { id: "s13", name: "独創", color: "red" }, { id: "s14", name: "豪奢", color: "red" },
+        { id: "s15", name: "堅実", color: "green" }, { id: "s16", name: "古風", color: "green" }, { id: "s17", name: "樂觀", color: "green" }, { id: "s18", name: "愛著", color: "green" }, { id: "s19", name: "親密", color: "green" }, { id: "s20", name: "朴訥", color: "green" }, { id: "s21", name: "柔和", color: "green" },
+        { id: "s22", name: "知性", color: "blue" }, { id: "s23", name: "忠實", color: "blue" }, { id: "s24", name: "自由", color: "blue" }, { id: "s25", name: "感傷", color: "blue" }, { id: "s26", name: "實質", color: "blue" }, { id: "s27", name: "謙虚", color: "blue" }, { id: "s28", name: "几帳面", color: "blue" },
+        { id: "s29", name: "意地惡", color: "purple" }, { id: "s30", name: "藝術", color: "purple" }, { id: "s31", name: "奔放", color: "purple" }, { id: "s32", name: "強韌", color: "purple" }, { id: "s33", name: "執著", color: "purple" }, { id: "s34", name: "君臨", color: "purple" }, { id: "s35", name: "鮮烈", color: "purple" }
+    ]
+};
+
+const characters = ["オズ", "アーサー", "カイン", "リケ", "スノウ", "ホワイト", "ミスラ", "オーエン", "ブラッドリー", "ファウスト", "シノ", "ヒースクリフ", "ネロ", "シャイロック", "ムル", "クロエ", "拉斯蒂卡", "フィガロ", "ルチル", "レノックス", "ミチル"];
+
+let allRecords = JSON.parse(localStorage.getItem('mahoyaku_cards')) || [];
+let selectedGold = [], selectedSilver = [];
+let tempGold = [], tempSilver = [];
+let currentEditIndex = -1;
+
+function init() {
+    const selects = [document.getElementById('characterSelect'), document.getElementById('temp_characterSelect')];
+    selects.forEach(s => s.innerHTML = '<option value="">角色</option>' + characters.map(c => `<option>${c}</option>`).join(''));
+
+    renderTraitBtns('goldContainer', 'gold', selectedGold);
+    renderTraitBtns('silverContainer', 'silver', selectedSilver);
+    renderTraitBtns('temp_goldContainer', 'gold', tempGold);
+    renderTraitBtns('temp_silverContainer', 'silver', tempSilver);
+
+    document.getElementById('temp_cardName').addEventListener('input', function(e) {
+        const val = e.target.value.trim();
+        const found = allRecords.find(r => r.name === val);
+        if (found) {
+            document.getElementById('temp_characterSelect').value = found.char;
+            tempGold.splice(0, tempGold.length, ...found.gold);
+            tempSilver.splice(0, tempSilver.length, ...found.silver);
+            updateBtnStates('temp_goldContainer', tempGold);
+            updateBtnStates('temp_silverContainer', tempSilver);
+        }
+    });
+    renderAll();
+}
+
+function renderTraitBtns(containerId, type, list) {
+    const container = document.getElementById(containerId);
+    traitsData[type].forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = `btn ${t.color}`;
+        btn.textContent = t.name;
+        btn.onclick = () => {
+            const max = (type === 'gold' ? 2 : 3);
+            const idx = list.findIndex(i => i.id === t.id);
+            if (idx > -1) { list.splice(idx, 1); btn.classList.remove('selected'); }
+            else if (list.length < max) { list.push(t); btn.classList.add('selected'); }
+        };
+        container.appendChild(btn);
+    });
+}
+
+function updateBtnStates(containerId, list) {
+    const btns = document.querySelectorAll(`#${containerId} .btn`);
+    btns.forEach(btn => {
+        const isSelected = list.some(t => t.name === btn.textContent);
+        btn.classList.toggle('selected', isSelected);
+    });
+}
+
+document.getElementById('toRecord').onclick = () => switchPage('record');
+document.getElementById('toCalc').onclick = () => switchPage('calc');
+
+function switchPage(mode) {
+    document.getElementById('recordPage').classList.toggle('active', mode === 'record');
+    document.getElementById('calcPage').classList.toggle('active', mode === 'calc');
+    document.getElementById('toRecord').classList.toggle('active', mode === 'record');
+    document.getElementById('toCalc').classList.toggle('active', mode === 'calc');
+}
+
+document.getElementById('saveBtn').onclick = () => {
+    const name = document.getElementById('cardName').value.trim();
+    const char = document.getElementById('characterSelect').value;
+    if (!name || !char) return alert("請輸入名稱與角色");
+    const record = { name, char, gold: [...selectedGold], silver: [...selectedSilver] };
+    if (currentEditIndex > -1) { allRecords[currentEditIndex] = record; currentEditIndex = -1; }
+    else { allRecords.unshift(record); }
+    localStorage.setItem('mahoyaku_cards', JSON.stringify(allRecords));
+    renderAll();
+    resetForm();
+};
+
+function renderAll() {
+    const list = document.getElementById('dataList');
+    list.innerHTML = '';
+    allRecords.slice(0, 10).forEach((rec, idx) => list.appendChild(createRecordDOM(rec, idx)));
+}
+
+function createRecordDOM(rec, idx) {
+    const div = document.createElement('div');
+    div.className = 'record-card';
+    let traitsHtml = rec.gold.map(t => `<span class="badge ${t.color} gold-border">${t.name}</span>`).join('');
+    if (rec.gold.length > 0 && rec.silver.length > 0) traitsHtml += '<span class="divider">|</span>';
+    traitsHtml += rec.silver.map(t => `<span class="badge ${t.color} silver-border">${t.name}</span>`).join('');
+    div.innerHTML = `<div class="record-main"><span class="card-title">${rec.name}</span><span class="char-outline">${rec.char}</span>${traitsHtml}</div>
+        <div class="record-actions">${idx !== undefined ? `<button class="edit-btn" onclick="editRecord(${idx})">修改</button><button class="del-btn" onclick="deleteRecord(${idx})">刪除</button>` : ''}</div>`;
+    return div;
+}
+
+window.deleteRecord = (idx) => {
+    if (confirm(`確定要刪除「${allRecords[idx].name}」嗎？`)) {
+        allRecords.splice(idx, 1);
+        localStorage.setItem('mahoyaku_cards', JSON.stringify(allRecords));
+        renderAll();
+    }
+};
+
+window.editRecord = (idx) => {
+    switchPage('record');
+    const rec = allRecords[idx];
+    currentEditIndex = idx;
+    document.getElementById('cardName').value = rec.name;
+    document.getElementById('characterSelect').value = rec.char;
+    selectedGold.splice(0, selectedGold.length, ...rec.gold);
+    selectedSilver.splice(0, selectedSilver.length, ...rec.silver);
+    updateBtnStates('goldContainer', selectedGold);
+    updateBtnStates('silverContainer', selectedSilver);
+    document.getElementById('saveBtn').textContent = "更新資料";
+};
+
+function resetForm() {
+    document.getElementById('cardName').value = '';
+    document.getElementById('characterSelect').selectedIndex = 0;
+    selectedGold.length = 0; selectedSilver.length = 0;
+    updateBtnStates('goldContainer', []);
+    updateBtnStates('silverContainer', []);
+    document.getElementById('saveBtn').textContent = "儲存資料";
+}
+
+function calculateScore(cards) {
+    let score = 0;
+    let allGold = [], allSilver = [];
+    cards.forEach(c => { allGold.push(...c.gold); allSilver.push(...c.silver); });
+    score += allGold.length * 1000;
+    score += allSilver.length * 600;
+    const colors = ['yellow', 'red', 'green', 'blue', 'purple'];
+    let gCount = { yellow: 0, red: 0, green: 0, blue: 0, purple: 0 };
+    let sCount = { yellow: 0, red: 0, green: 0, blue: 0, purple: 0 };
+    allGold.forEach(t => gCount[t.color]++);
+    allSilver.forEach(t => sCount[t.color]++);
+    colors.forEach(col => {
+        if (gCount[col] >= 4) score += 6000; else if (gCount[col] >= 3) score += 1000;
+        if (sCount[col] >= 7) score += 150000; else if (sCount[col] >= 5) score += 14000; else if (sCount[col] >= 4) score += 4500; else if (sCount[col] >= 3) score += 1000;
+    });
+    let uniqueGoldColors = new Set(allGold.map(t => t.color)).size;
+    if (uniqueGoldColors >= 5) { score += 5000; score += (allGold.length - 5) * 5000; }
+    return score;
+}
+
+document.getElementById('runCalc').onclick = () => {
+    const hasTempTraits = tempGold.length > 0 || tempSilver.length > 0;
+    let pool = allRecords.map(r => {
+        let pot = r.gold.length * 1000 + r.silver.length * 600;
+        const sCols = r.silver.map(s => s.color);
+        const colCounts = {};
+        sCols.forEach(c => colCounts[c] = (colCounts[c] || 0) + 1);
+        Object.values(colCounts).forEach(cnt => { if (cnt >= 2) pot += 500; });
+        return { ...r, potential: pot };
+    });
+
+    if (pool.length < (hasTempTraits ? 4 : 5)) return alert("紀錄不足！");
+    pool.sort((a, b) => b.potential - a.potential);
+    const elitePool = pool.slice(0, 28); // 擴大精英池至 28 張
+    let results = [];
+    const n = elitePool.length;
+
+    if (hasTempTraits) {
+        const tempCard = { name: document.getElementById('temp_cardName').value || "暫時卡", char: document.getElementById('temp_characterSelect').value || "-", gold: [...tempGold], silver: [...tempSilver] };
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                for (let l = j + 1; l < n; l++) {
+                    for (let m = l + 1; m < n; m++) {
+                        const combo = [tempCard, elitePool[i], elitePool[j], elitePool[l], elitePool[m]];
+                        results.push({ cards: combo, score: calculateScore(combo) });
+                    }
+                }
+            }
+        }
+    } else {
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                for (let l = j + 1; l < n; l++) {
+                    for (let m = l + 1; m < n; m++) {
+                        for (let o = m + 1; o < n; o++) {
+                            const combo = [elitePool[i], elitePool[j], elitePool[l], elitePool[m], elitePool[o]];
+                            results.push({ cards: combo, score: calculateScore(combo) });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    results.sort((a, b) => b.score - a.score);
+    const container = document.getElementById('calcResults');
+    container.innerHTML = "";
+    // 嚴格僅顯示前 3 名
+    for (let i = 0; i < Math.min(results.length, 3); i++) {
+        const res = results[i];
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'result-group';
+        let headerText = `[第${i+1}組] ${i === 1 ? '預測分數：' : '分數：'}${res.score}pt`;
+        groupDiv.innerHTML = `<div class="group-header">${headerText}</div>`;
+        res.cards.forEach(c => groupDiv.appendChild(createRecordDOM(c)));
+        container.appendChild(groupDiv);
+    }
+};
+init();
+</script>
+</body>
+</html>
