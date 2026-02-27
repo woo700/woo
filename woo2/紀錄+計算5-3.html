@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>まほやく最佳排組計算</title>
+    <style>
+        @font-face { font-family: 'YuseiMagic-Regular'; src: url('../Font/YuseiMagic-Regular.woff') format('woff'); }
+        @font-face { font-family: 'uzura'; src: url('../Font/uzura.woff') format('woff'); }
+        :root { --main-brown: #8a6b55; --light-brown: #c4b0a1; --bg-color: #f5eee5; --accent-tan: #e2c4ad; --delete-red: #ebb2ac; --save-green: #6b8a55; }
+        body { font-family: "YuseiMagic-Regular", sans-serif; color: var(--main-brown); background-color: var(--bg-color); padding: 15px; max-width: 900px; margin: 0 auto; -webkit-tap-highlight-color: transparent; }
+        .mode-switch { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .mode-btn { padding: 10px 25px; border: 2px solid var(--main-brown); border-radius: 25px; background: white; color: var(--main-brown); cursor: pointer; font-size: 16px; font-family: "YuseiMagic-Regular", sans-serif; }
+        .mode-btn.active { background: var(--main-brown); color: white; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .input-group { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        input[type="text"], select, textarea { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; font-family: "uzura", sans-serif; }
+        #cardName, #temp_cardName { flex: 2; width: 60%; }
+        #characterSelect, #temp_characterSelect { flex: 1; width: 35%; }
+        .section-title { font-size: 18px; font-weight: bold; margin: 15px 0 10px; padding-left: 10px; border-left: 5px solid var(--accent-tan); }
+        .btn-container { display: flex; flex-wrap: wrap; gap: 8px; }
+        .btn { padding: 8px 14px; border: none; border-radius: 20px; color: white; font-size: 14px; font-family: "uzura", sans-serif; cursor: pointer; transition: opacity 0.2s; touch-action: manipulation; }
+        .btn.selected { opacity: 0.75; filter: brightness(0.9); }
+        .yellow { background-color: #e5c77a; } .red { background-color: #ebb2ac; } .green { background-color: #add2a3; } .blue { background-color: #9bc2e9; } .purple { background-color: #c1a5d9; }
+        .action-btn { width: 100%; padding: 15px; margin-top: 15px; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; font-family: "YuseiMagic-Regular", sans-serif; background-color: var(--main-brown); color: white; }
+        .record-card { background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--accent-tan); }
+        .record-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
+        .record-actions { display: flex; gap: 5px; margin-left: 10px; }
+        .card-title { font-weight: bold; font-size: 16px; }
+        .char-outline { padding: 2px 8px; border: 1.5px solid var(--light-brown); border-radius: 12px; font-size: 13px; }
+        .badge { padding: 3px 8px; border-radius: 6px; font-size: 12px; color: white; }
+        .gold-border { border: 2px solid #d4af37; } .silver-border { border: 2px solid #a5a2a7; }
+        .divider { color: var(--light-brown); font-weight: bold; margin: 0 5px; }
+        .group-header { font-size: 16px; font-weight: bold; margin: 25px 0 10px; padding: 10px 15px; background: var(--accent-tan); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .edit-btn { background: #a5a2a7; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13px; cursor: pointer; }
+        .del-btn { background: var(--delete-red); color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13px; cursor: pointer; }
+        .backup-area { margin-top: 40px; border-top: 2px dashed var(--accent-tan); padding-top: 20px; }
+        #backupCode { width: 100%; height: 60px; font-size: 12px; margin-bottom: 10px; box-sizing: border-box; }
+        .backup-btns { display: flex; gap: 10px; }
+        .mini-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; color: white; font-family: "uzura", sans-serif; cursor: pointer; }
+        .btn-copy { background: var(--main-brown); } .btn-import { background: var(--save-green); }
+    </style>
+</head>
+<body>
+    <div class="mode-switch">
+        <button id="toRecord" class="mode-btn active">紀錄模式</button>
+        <button id="toCalc" class="mode-btn">計算模式</button>
+    </div>
+    <div id="recordPage" class="page active">
+        <div class="input-group">
+            <div class="input-row">
+                <input type="text" id="cardName" placeholder="卡面名稱">
+                <select id="characterSelect"></select>
+            </div>
+            <div class="section-title">金枠 (最多2)</div>
+            <div id="goldContainer" class="btn-container"></div>
+            <div class="section-title">銀枠 (最多3)</div>
+            <div id="silverContainer" class="btn-container"></div>
+            <button id="saveBtn" class="action-btn">儲存資料</button>
+        </div>
+        <div class="section-title">最近 10 筆紀錄</div>
+        <div id="dataList"></div>
+        <div class="backup-area">
+            <div class="section-title">數據備份與還原 (極致壓縮版)</div>
+            <textarea id="backupCode" placeholder="貼入代碼..."></textarea>
+            <div class="backup-btns">
+                <button class="mini-btn btn-copy" id="exportBtn">複製備份代碼</button>
+                <button class="mini-btn btn-import" id="importBtn">導入資料</button>
+            </div>
+        </div>
+    </div>
+    <div id="calcPage" class="page">
+        <div class="input-group">
+            <div class="section-title">暫時紀錄欄</div>
+            <div class="input-row">
+                <input type="text" id="temp_cardName" placeholder="輸入名稱可自動帶入">
+                <select id="temp_characterSelect"></select>
+            </div>
+            <div class="section-title">金枠 (最多2)</div>
+            <div id="temp_goldContainer" class="btn-container"></div>
+            <div class="section-title">銀枠 (最多3)</div>
+            <div id="temp_silverContainer" class="btn-container"></div>
+            <button id="runCalc" class="action-btn" style="background-color: var(--save-green);">開始計算推薦排組</button>
+        </div>
+        <div id="calcResults"></div>
+    </div>
+
+<script>
+const traitsData = {
+    gold: [
+        { id: "g01", name: "神聖", color: "yellow" }, { id: "g02", name: "正義", color: "yellow" }, { id: "g03", name: "威嚴", color: "yellow" }, { id: "g04", name: "勇敢", color: "yellow" }, { id: "g05", name: "不屈", color: "yellow" },
+        { id: "g06", name: "勇氣", color: "red" }, { id: "g07", name: "愛情", color: "red" }, { id: "g08", name: "勝利", color: "red" }, { id: "g09", name: "破天荒", color: "red" }, { id: "g10", name: "夢中", color: "red" },
+        { id: "g11", name: "自然", color: "green" }, { id: "g12", name: "幸運", color: "green" }, { id: "g13", name: "再生", color: "green" }, { id: "g14", name: "真心", color: "green" }, { id: "g15", name: "團結", color: "green" },
+        { id: "g16", name: "信頼", color: "blue" }, { id: "g17", name: "誠実", color: "blue" }, { id: "g18", name: "残酷", color: "blue" }, { id: "g19", name: "高潔", color: "blue" }, { id: "g20", name: "慎重", color: "blue" },
+        { id: "g21", name: "神秘", color: "purple" }, { id: "g22", name: "優雅", color: "purple" }, { id: "g23", name: "高貴", color: "purple" }, { id: "g24", name: "矜持", color: "purple" }, { id: "g25", name: "強者", color: "purple" }
+    ],
+    silver: [
+        { id: "s01", name: "信念", color: "yellow" }, { id: "s02", name: "祝福", color: "yellow" }, { id: "s03", name: "純粋", color: "yellow" }, { id: "s04", name: "貫禄", color: "yellow" }, { id: "s05", name: "指導力", color: "yellow" }, { id: "s06", name: "栄誉", color: "yellow" }, { id: "s07", name: "理想", color: "yellow" },
+        { id: "s08", name: "希望", color: "red" }, { id: "s09", name: "情熱", color: "red" }, { id: "s10", name: "熱血", color: "red" }, { id: "s11", name: "絢爛", color: "red" }, { id: "s12", name: "審美眼", color: "red" }, { id: "s13", name: "獨創", color: "red" }, { id: "s14", name: "豪奢", color: "red" },
+        { id: "s15", name: "堅實", color: "green" }, { id: "s16", name: "古風", color: "green" }, { id: "s17", name: "樂觀", color: "green" }, { id: "s18", name: "愛著", color: "green" }, { id: "s19", name: "親密", color: "green" }, { id: "s20", name: "朴訥", color: "green" }, { id: "s21", name: "柔和", color: "green" },
+        { id: "s22", name: "知性", color: "blue" }, { id: "s23", name: "忠實", color: "blue" }, { id: "s24", name: "自由", color: "blue" }, { id: "s25", name: "感傷", color: "blue" }, { id: "s26", name: "實質", color: "blue" }, { id: "s27", name: "謙虛", color: "blue" }, { id: "s28", name: "几帳面", color: "blue" },
+        { id: "s29", name: "意地惡", color: "purple" }, { id: "s30", name: "藝術", color: "purple" }, { id: "s31", name: "奔放", color: "purple" }, { id: "s32", name: "強韌", color: "purple" }, { id: "s33", name: "執著", color: "purple" }, { id: "s34", name: "君臨", color: "purple" }, { id: "s35", name: "鮮烈", color: "purple" }
+    ]
+};
+
+const charList = ["オズ", "アーサー", "カイン", "リケ", "スノウ", "ホワイト", "ミスラ", "オーエン", "ブラッドリー", "ファウスト", "シノ", "ヒースクリフ", "ネロ", "シャイロック", "ムル", "クロエ", "拉斯蒂卡", "フィガロ", "ルチル", "レノックス", "ミチル"];
+
+let allRecords = JSON.parse(localStorage.getItem('mahoyaku_cards')) || [];
+let selectedGold = [], selectedSilver = [];
+let tempGold = [], tempSilver = [];
+let currentEditIndex = -1;
+
+function init() {
+    const selects = [document.getElementById('characterSelect'), document.getElementById('temp_characterSelect')];
+    selects.forEach(s => s.innerHTML = '<option value="">角色</option>' + charList.map(c => `<option>${c}</option>`).join(''));
+    renderButtons('goldContainer', 'gold', 'record');
+    renderButtons('silverContainer', 'silver', 'record');
+    renderButtons('temp_goldContainer', 'gold', 'temp');
+    renderButtons('temp_silverContainer', 'silver', 'temp');
+    document.getElementById('temp_cardName').addEventListener('input', (e) => {
+        const found = allRecords.find(r => r.name === e.target.value.trim());
+        if (found) {
+            document.getElementById('temp_characterSelect').value = found.char;
+            tempGold = [...found.gold]; tempSilver = [...found.silver];
+            updateBtnVisuals('temp_goldContainer', tempGold); updateBtnVisuals('temp_silverContainer', tempSilver);
+        }
+    });
+    renderAll();
+}
+
+function renderButtons(containerId, type, pageType) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    traitsData[type].forEach(trait => {
+        const btn = document.createElement('button');
+        btn.className = `btn ${trait.color}`; btn.textContent = trait.name;
+        btn.onclick = () => {
+            let list = (pageType === 'record') ? (type === 'gold' ? selectedGold : selectedSilver) : (type === 'gold' ? tempGold : tempSilver);
+            const max = (type === 'gold' ? 2 : 3);
+            const idx = list.findIndex(i => i.id === trait.id);
+            if (idx > -1) { list.splice(idx, 1); btn.classList.remove('selected'); }
+            else if (list.length < max) { list.push({...trait}); btn.classList.add('selected'); }
+        };
+        container.appendChild(btn);
+    });
+}
+
+function resetForm() {
+    document.getElementById('cardName').value = ''; document.getElementById('characterSelect').selectedIndex = 0;
+    selectedGold = []; selectedSilver = []; currentEditIndex = -1;
+    document.getElementById('saveBtn').textContent = "儲存資料";
+    document.querySelectorAll('#recordPage .btn').forEach(b => b.classList.remove('selected'));
+}
+
+document.getElementById('saveBtn').onclick = () => {
+    const name = document.getElementById('cardName').value.trim();
+    const char = document.getElementById('characterSelect').value;
+    if (!name || !char) { alert("請填寫卡面與角色"); return; }
+    const record = { name, char, gold: [...selectedGold], silver: [...selectedSilver] };
+    if (currentEditIndex > -1) allRecords[currentEditIndex] = record;
+    else allRecords.unshift(record);
+    localStorage.setItem('mahoyaku_cards', JSON.stringify(allRecords));
+    renderAll(); resetForm();
+};
+
+function renderAll() {
+    const list = document.getElementById('dataList'); list.innerHTML = '';
+    allRecords.slice(0, 10).forEach((rec, idx) => { list.appendChild(createRecordElement(rec, idx)); });
+}
+
+function createRecordElement(rec, idx, isResult = false) {
+    const div = document.createElement('div'); div.className = 'record-card';
+    const tH = rec.gold.map(t => `<span class="badge ${t.color} gold-border">${t.name}</span>`).join('') +
+               (rec.gold.length > 0 && rec.silver.length > 0 ? '<span class="divider">|</span>' : '') +
+               rec.silver.map(t => `<span class="badge ${t.color} silver-border">${t.name}</span>`).join('');
+    div.innerHTML = `<div class="record-main"><span class="card-title">${rec.name}</span><span class="char-outline">${rec.char}</span>${tH}</div>`;
+    if (!isResult && idx !== undefined) {
+        const ac = document.createElement('div'); ac.className = 'record-actions';
+        ac.innerHTML = `<button class="edit-btn" onclick="editRecord(${idx})">修改</button><button class="del-btn" onclick="deleteRecord(${idx})">刪除</button>`;
+        div.appendChild(ac);
+    }
+    return div;
+}
+
+window.deleteRecord = (idx) => { if (confirm("確定刪除嗎？")) { allRecords.splice(idx, 1); localStorage.setItem('mahoyaku_cards', JSON.stringify(allRecords)); renderAll(); } };
+window.editRecord = (idx) => {
+    const rec = allRecords[idx]; currentEditIndex = idx;
+    document.getElementById('cardName').value = rec.name; document.getElementById('characterSelect').value = rec.char;
+    selectedGold = [...rec.gold]; selectedSilver = [...rec.silver];
+    updateBtnVisuals('goldContainer', selectedGold); updateBtnVisuals('silverContainer', selectedSilver);
+    document.getElementById('saveBtn').textContent = "更新資料"; document.getElementById('toRecord').click(); window.scrollTo(0,0);
+};
+
+function updateBtnVisuals(cId, list) {
+    const btns = document.querySelectorAll(`#${cId} .btn`);
+    btns.forEach(btn => { btn.classList.toggle('selected', list.some(i => i.name === btn.textContent)); });
+}
+
+document.getElementById('toRecord').onclick = () => {
+    document.getElementById('recordPage').classList.add('active'); document.getElementById('calcPage').classList.remove('active');
+    document.getElementById('toRecord').classList.add('active'); document.getElementById('toCalc').classList.remove('active');
+};
+document.getElementById('toCalc').onclick = () => {
+    document.getElementById('recordPage').classList.remove('active'); document.getElementById('calcPage').classList.add('active');
+    document.getElementById('toRecord').classList.remove('active'); document.getElementById('toCalc').classList.add('active');
+};
+
+// --- 核心計算邏輯 (修正版) ---
+function calculateScore(cards) {
+    let score = 0;
+    let rawGold = [], rawSilver = [];
+    cards.forEach(c => { rawGold.push(...c.gold); rawSilver.push(...c.silver); });
+
+    // (1) 基礎分：每 1 金 +1000，每 1 銀 +600 (不論重複與否)
+    score += rawGold.length * 1000;
+    score += rawSilver.length * 600;
+
+    const colors = ['yellow', 'red', 'green', 'blue', 'purple'];
+    
+    colors.forEach(col => {
+        // 取得該顏色中「相異」的特性名稱
+        const distinctGoldNames = [...new Set(rawGold.filter(t => t.color === col).map(t => t.name))];
+        const distinctSilverNames = [...new Set(rawSilver.filter(t => t.color === col).map(t => t.name))];
+
+        const gCount = distinctGoldNames.length;
+        const sCount = distinctSilverNames.length;
+
+        // (2) 同色金枠加分 (不同)
+        if (gCount >= 4) score += 6000;
+        else if (gCount >= 3) score += 1000;
+
+        // (3) 同色銀枠加分 (不同)
+        if (sCount >= 7) score += 150000;
+        else if (sCount >= 5) score += 14000;
+        else if (sCount >= 4) score += 4500;
+        else if (sCount >= 3) score += 1000;
+    });
+
+    // (4) 五色金枠：包含五種顏色
+    const uniqueGoldColors = new Set(rawGold.map(t => t.color));
+    if (uniqueGoldColors.size >= 5) {
+        score += 5000;
+        // (5) (4)以後每 +1 金枠 = +5000pt
+        if (rawGold.length > 5) {
+            score += (rawGold.length - 5) * 5000;
+        }
+    }
+
+    return score;
+}
+
+document.getElementById('runCalc').onclick = () => {
+    const tN = document.getElementById('temp_cardName').value.trim();
+    const tC = document.getElementById('temp_characterSelect').value;
+    const hasT = tempGold.length > 0 || tempSilver.length > 0;
+    let pool = allRecords.map(r => {
+        let pot = r.gold.length * 1000 + r.silver.length * 600;
+        return { ...r, potential: pot };
+    });
+    if (pool.length < (hasT ? 4 : 5)) { alert("紀錄不足"); return; }
+    pool.sort((a,b) => b.potential - a.potential);
+    const elite = pool.slice(0, 25); // 稍微縮小範圍以提升手機計算速度
+    let allResults = [];
+    if (hasT) {
+        const tCard = { name: tN || "暫時紀錄卡", char: tC || "-", gold: [...tempGold], silver: [...tempSilver] };
+        for(let i=0; i<elite.length; i++)
+        for(let j=i+1; j<elite.length; j++)
+        for(let l=j+1; l<elite.length; l++)
+        for(let m=l+1; m<elite.length; m++) {
+            const combo = [tCard, elite[i], elite[j], elite[l], elite[m]];
+            allResults.push({ cards: combo, score: calculateScore(combo) });
+        }
+    } else {
+        for(let i=0; i<elite.length; i++)
+        for(let j=i+1; j<elite.length; j++)
+        for(let l=j+1; l<elite.length; l++)
+        for(let m=l+1; m<elite.length; m++)
+        for(let o=m+1; o<elite.length; o++) {
+            const combo = [elite[i], elite[j], elite[l], elite[m], elite[o]];
+            allResults.push({ cards: combo, score: calculateScore(combo) });
+        }
+    }
+    allResults.sort((a,b) => b.score - a.score);
+    const container = document.getElementById('calcResults'); container.innerHTML = "";
+    let distinctScores = []; let displayedCount = 0;
+    for (let res of allResults) {
+        if (!distinctScores.includes(res.score)) {
+            if (distinctScores.length >= 3) break;
+            distinctScores.push(res.score);
+        }
+        displayedCount++;
+        const group = document.createElement('div');
+        group.innerHTML = `<div class="group-header"><span>組合 ${displayedCount} 分數：${res.score}pt</span><span style="font-size:12px;opacity:0.6;">位階 ${distinctScores.length}</span></div>`;
+        res.cards.forEach(c => { group.appendChild(createRecordElement(c, undefined, true)); });
+        container.appendChild(group);
+        if (displayedCount >= 30) break;
+    }
+};
+
+// --- 壓縮備份功能 ---
+const charMap = charList.reduce((a,c,i)=>{a[c]=i;return a;},{});
+const revCharMap = charList.reduce((a,c,i)=>{a[i]=c;return a;},{});
+const allTraits = [...traitsData.gold, ...traitsData.silver];
+const traitMap = allTraits.reduce((a,c)=>{a[c.name]=c.id;return a;},{});
+const revTraitMap = allTraits.reduce((a,c)=>{a[c.id]=c.name;return a;},{});
+
+document.getElementById('exportBtn').onclick = () => {
+    if (allRecords.length === 0) return;
+    const compressed = allRecords.map(r => ({ n: r.name, c: charMap[r.char], g: r.gold.map(x=>x.id), s: r.silver.map(x=>x.id) }));
+    const code = btoa(unescape(encodeURIComponent(JSON.stringify(compressed))));
+    const t = document.getElementById('backupCode'); t.value = code; t.select(); document.execCommand('copy');
+    alert("壓縮代碼已複製！");
+};
+
+document.getElementById('importBtn').onclick = () => {
+    const code = document.getElementById('backupCode').value.trim();
+    if (!code || !confirm("確定導入並覆蓋嗎？")) return;
+    try {
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(code))));
+        allRecords = decoded.map(r => ({
+            name: r.n, char: revCharMap[r.c],
+            gold: r.g.map(id => ({ id, name: revTraitMap[id], color: allTraits.find(x=>x.id===id).color })),
+            silver: r.s.map(id => ({ id, name: revTraitMap[id], color: allTraits.find(x=>x.id===id).color }))
+        }));
+        localStorage.setItem('mahoyaku_cards', JSON.stringify(allRecords)); renderAll(); alert("導入成功！");
+    } catch (e) { alert("代碼錯誤！"); }
+};
+
+init();
+</script>
+</body>
+</html>
