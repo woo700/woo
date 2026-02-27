@@ -29,13 +29,13 @@
         .record-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
         .record-actions { display: flex; gap: 5px; margin-left: 10px; }
         .card-title { font-weight: bold; font-size: 18px; }
-        .char-outline { padding: 2px 8px; border: 1.5px solid var(--light-brown); border-radius: 12px; font-size: 14px; }
-        .badge { padding: 3px 8px; border-radius: 6px; font-size: 15px; color: white; }
+        .char-outline { padding: 2px 8px; border: 1.5px solid var(--light-brown); border-radius: 12px; font-size: 13.7px; }
+        .badge { padding: 3px 8px; border-radius: 6px; font-size: 13.7px; color: white; }
         .gold-border { border: 2px solid #d4af37; } .silver-border { border: 2px solid #a5a2a7; }
         .divider { color: var(--light-brown); font-weight: bold; margin: 0 5px; }
         .group-header { font-size: 18px; font-weight: bold; margin: 25px 0 10px; padding: 10px 15px; background: var(--accent-tan); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .edit-btn { background: #a5a2a7; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 15px; cursor: pointer; }
-        .del-btn { background: var(--delete-red); color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 15px; cursor: pointer; }
+        .edit-btn { background: #a5a2a7; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13.7px; cursor: pointer; }
+        .del-btn { background: var(--delete-red); color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13.7px; cursor: pointer; }
         .backup-area { margin-top: 40px; border-top: 2px dashed var(--accent-tan); padding-top: 20px; }
         #backupCode { width: 100%; height: 60px; font-size: 15px; margin-bottom: 10px; box-sizing: border-box; }
         .backup-btns { display: flex; gap: 10px; }
@@ -316,7 +316,7 @@ document.getElementById('runCalc').onclick = () => {
             }
             displayedCount++;
             const group = document.createElement('div');
-            group.innerHTML = `<div class="group-header"><span>組合 ${displayedCount} 分數：${res.score}pt</span><span style="font-size:12px;opacity:0.6;">位階 ${distinctScores.length}</span></div>`;
+            group.innerHTML = `<div class="group-header"><span>組合 ${displayedCount} 分數：${res.score}pt</span><span style="font-size:13px;opacity:0.6;">位階 ${distinctScores.length}</span></div>`;
             res.cards.forEach(c => group.appendChild(createRecordElement(c, undefined, true)));
             container.appendChild(group);
             if (displayedCount >= 30) break;
