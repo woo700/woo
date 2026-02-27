@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>まほやく最佳排組計算</title>
+    <style>
+        @font-face { font-family: 'YuseiMagic-Regular'; src: url('../Font/YuseiMagic-Regular.woff') format('woff'); }
+        @font-face { font-family: 'uzura'; src: url('../Font/uzura.woff') format('woff'); }
+
+        :root {
+            --main-brown: #8a6b55;
+            --light-brown: #c4b0a1;
+            --bg-color: #f5eee5;
+            --accent-tan: #e2c4ad;
+            --delete-red: #ebb2ac;
+            --save-green: #6b8a55;
+        }
+
+        body {
+            font-family: "YuseiMagic-Regular", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            color: var(--main-brown);
+            background-color: var(--bg-color);
+            padding: 15px;
+            max-width: 900px;
+            margin: 0 auto;
+            -webkit-tap-highlight-color: transparent;
+            font-size: 18px; /* 全局字體稍微放大 */
+        }
+
+        .mode-switch { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .mode-btn {
+            padding: 12px 28px; border: 2px solid var(--main-brown); border-radius: 25px;
+            background: white; color: var(--main-brown); cursor: pointer; font-size: 18px;
+            font-family: "YuseiMagic-Regular", sans-serif;
+        }
+        .mode-btn.active { background: var(--main-brown); color: white; }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .input-group {
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px;
+        }
+
+        .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        input[type="text"], select, textarea {
+            padding: 12px; border-radius: 8px; border: 1px solid #ccc;
+            font-size: 18px; font-family: "uzura", sans-serif;
+            -webkit-appearance: none;
+        }
+        #cardName, #temp_cardName { flex: 2; width: 60%; }
+        #characterSelect, #temp_characterSelect { flex: 1; width: 35%; }
+
+        .section-title {
+            font-size: 20px; font-weight: bold; margin: 15px 0 10px;
+            padding-left: 10px; border-left: 5px solid var(--accent-tan);
+        }
+
+        .btn-container { display: flex; flex-wrap: wrap; gap: 8px; }
+        .btn {
+            padding: 10px 16px; border: none; border-radius: 20px;
+            color: white; font-size: 16px; font-family: "uzura", sans-serif;
+            cursor: pointer; transition: opacity 0.2s;
+            touch-action: manipulation;
+        }
+        /* 按下按鈕後的透明度設為 40% */
+        .btn.selected { opacity: 0.4; filter: brightness(0.9); }
+
+        .yellow { background-color: #e5c77a; }
+        .red { background-color: #ebb2ac; }
+        .green { background-color: #add2a3; }
+        .blue { background-color: #9bc2e9; }
+        .purple { background-color: #c1a5d9; }
+
+        .action-btn {
+            width: 100%; padding: 15px; margin-top: 15px; border: none;
+            border-radius: 10px; font-size: 20px; cursor: pointer;
+            font-family: "YuseiMagic-Regular", sans-serif;
+            background-color: var(--main-brown); color: white;
+        }
+
+        .record-card {
+            background: white; padding: 12px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; align-items: center;
+            justify-content: space-between; border-bottom: 3px solid var(--accent-tan);
+        }
+        .record-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
+        .record-actions { display: flex; gap: 8px; margin-left: 10px; }
+        
+        .card-title { font-weight: bold; font-size: 18px; }
+        .char-outline { padding: 3px 10px; border: 1.5px solid var(--light-brown); border-radius: 12px; font-size: 15px; }
+
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 14px; color: white; margin: 2px 0; }
+        .gold-border { border: 2px solid #d4af37; }
+        .silver-border { border: 2px solid #a5a2a7; }
+        .divider { color: var(--light-brown); font-weight: bold; margin: 0 5px; }
+
+        .group-header { 
+            font-size: 18px; font-weight: bold; margin: 25px 0 10px; 
+            padding: 10px 15px; background: var(--accent-tan); border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .edit-btn { background: #a5a2a7; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-size: 15px; cursor: pointer; }
+        .del-btn { background: var(--delete-red); color: white; border: none; padding: 8px 15px; border-radius: 5px; font-size: 15px; cursor: pointer; }
+
+        .backup-area { margin-top: 40px; border-top: 2px dashed var(--accent-tan); padding-top: 20px; }
+        #backupCode { width: 100%; height: 80px; font-size: 14px; margin-bottom: 10px; }
+        .backup-btns { display: flex; gap: 10px; }
+        .mini-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; color: white; font-family: "uzura", sans-serif; cursor: pointer; font-size: 16px; }
+        .btn-copy { background: var(--main-brown); } .btn-import { background: var(--save-green); }
+    </style>
+</head>
+<body>
+
+    <div class="mode-switch">
+        <button id="toRecord" class="mode-btn active">紀錄模式</button>
+        <button id="toCalc" class="mode-btn">計算模式</button>
+    </div>
+
+    <div id="recordPage" class="page active">
+        <div class="input-group">
+            <div class="input-row">
+                <input type="text" id="cardName" placeholder="卡面名稱">
+                <select id="characterSelect"></select>
+            </div>
+            <div class="section-title">金枠 (最多2)</div>
+            <div id="goldContainer" class="btn-container"></div>
+            <div class="section-title">銀枠 (最多3)</div>
+            <div id="silverContainer" class="btn-container"></div>
+            <button id="saveBtn" class="action-btn">儲存資料</button>
+        </div>
+        <div class="section-title">最近 10 筆紀錄</div>
+        <div id="dataList"></div>
+
+        <div class="backup-area">
+            <div class="section-title">數據備份與還原 (極致壓縮版)</div>
+            <textarea id="backupCode" placeholder="貼入代碼..."></textarea>
+            <div class="backup-btns">
+                <button class="mini-btn btn-copy" id="exportBtn">複製備份代碼</button>
+                <button class="mini-btn btn-import" id="importBtn">導入資料</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="calcPage" class="page">
+        <div class="input-group">
+            <div class="section-title">暫時紀錄欄</div>
+            <div class="input-row">
+                <input type="text" id="temp_cardName" placeholder="
