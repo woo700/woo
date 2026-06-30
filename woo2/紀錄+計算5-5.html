@@ -289,7 +289,7 @@ document.getElementById('runCalc').onclick = () => {
         let distinctScores = []; let displayedCount = 0;
         for (let res of allResults) {
             if (!distinctScores.includes(res.score)) {
-                if (distinctScores.length >= 3) break;
+                if (distinctScores.length >= 5) break;
                 distinctScores.push(res.score);
             }
             displayedCount++;
@@ -297,7 +297,7 @@ document.getElementById('runCalc').onclick = () => {
             group.innerHTML = `<div class="group-header"><span>組合 ${displayedCount} 分數：${res.score}pt</span><span style="font-size:12px;opacity:0.6;">位階 ${distinctScores.length}</span></div>`;
             res.cards.forEach(c => group.appendChild(createRecordElement(c, undefined, true)));
             container.appendChild(group);
-            if (displayedCount >= 45) break;
+            if (displayedCount >= 30) break;
         }
         document.getElementById('runCalc').textContent = "開始計算推薦排組";
     }, 100);
